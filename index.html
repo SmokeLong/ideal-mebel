@@ -11,7 +11,7 @@
         :root {
             --bg: #0d0d0d; --card: #1a1a1a; --card2: #252525;
             --accent: #8B7355; --accent2: #A69076;
-            --green: #4CAF50; --red: #ef5350; --yellow: #FFB74D; --orange: #FF8A65;
+            --green: #4CAF50; --red: #ef5350; --yellow: #FFB74D;
             --text: #ffffff; --text2: #999999; --border: #333333;
             --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -53,7 +53,6 @@
         .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
         .summary-card { background: var(--card); border-radius: 14px; padding: 12px; border: 1px solid var(--border); }
-        .summary-card.full { grid-column: 1 / -1; }
         .summary-card .label { font-size: 10px; color: var(--text2); margin-bottom: 3px; }
         .summary-card .value { font-size: 18px; font-weight: 700; }
         .summary-card .value.income { color: var(--green); }
@@ -61,9 +60,9 @@
         .summary-card .value.profit { color: var(--accent2); }
         .summary-card .value.assets { color: var(--yellow); }
         .alerts { margin-bottom: 14px; }
-        .alert { background: var(--card); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; border-left: 4px solid var(--red); display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        .alert { background: var(--card); border-radius: 10px; padding: 10px 12px; border-left: 4px solid var(--red); font-size: 12px; }
         .list-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .list-item.archived { opacity: 0.6; border-style: dashed; }
+        .list-item.archived { opacity: 0.5; border-style: dashed; }
         .list-item .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
         .list-item .title { font-weight: 600; font-size: 14px; }
         .list-item .subtitle { font-size: 11px; color: var(--text2); margin-top: 3px; }
@@ -78,7 +77,7 @@
         .badge-margin { background: rgba(255,183,77,0.2); color: var(--yellow); }
         .progress-bar { height: 5px; background: var(--card2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
         .progress-bar .fill { height: 100%; border-radius: 3px; }
-        .progress-green { background: linear-gradient(90deg, var(--green), var(--accent)); }
+        .progress-green { background: var(--green); }
         .progress-yellow { background: var(--yellow); }
         .progress-red { background: var(--red); }
         .actions { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
@@ -86,7 +85,6 @@
         .action-btn.danger { color: var(--red); }
         .action-btn.success { color: var(--green); }
         .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
-        .tabs::-webkit-scrollbar { display: none; }
         .tab-btn { padding: 8px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; color: var(--text2); font-size: 12px; white-space: nowrap; cursor: pointer; }
         .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
         .stages { display: flex; gap: 3px; margin-top: 8px; flex-wrap: wrap; }
@@ -104,9 +102,9 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .modal-title { font-size: 17px; font-weight: 600; }
         .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--card2); border: 1px solid var(--border); color: var(--text); font-size: 18px; cursor: pointer; }
-        .photo-preview { width: 100%; max-height: 120px; object-fit: cover; border-radius: 10px; margin-top: 8px; display: none; }
+        .photo-preview { width: 100%; max-height: 100px; object-fit: cover; border-radius: 10px; margin-top: 8px; display: none; }
         .photo-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: var(--card2); border: 2px dashed var(--border); border-radius: 10px; color: var(--text2); cursor: pointer; font-size: 13px; }
-        .photo-thumb { height: 50px; border-radius: 8px; margin-top: 8px; cursor: pointer; object-fit: cover; }
+        .photo-thumb { height: 40px; border-radius: 6px; margin-top: 6px; cursor: pointer; }
         .date-filter { display: flex; gap: 8px; margin-bottom: 14px; }
         .date-filter .form-group { flex: 1; margin-bottom: 0; }
         .empty { text-align: center; padding: 30px; color: var(--text2); }
@@ -151,7 +149,7 @@
                     <button class="quick-btn" onclick="openModal('newProject')"><span>📋</span>Проект</button>
                     <button class="quick-btn" onclick="openModal('addAsset')"><span>📦</span>Склад</button>
                 </div>
-                <div class="card"><div class="card-title">📈 Последние операции</div><div id="recentOps"></div></div>
+                <div class="card"><div class="card-title">📈 Последние</div><div id="recentOps"></div></div>
             </div>
             <!-- PROJECTS -->
             <div id="projects" class="panel">
@@ -194,26 +192,7 @@
                     <div class="form-group"><label>Проект</label><select id="expenseProject"></select></div>
                     <div class="form-group"><label>Категория</label>
                         <select id="expenseCategory">
-                            <option>Магазины</option>
-                            <option>Закуп материалов</option>
-                            <option>Амортизация предприятия</option>
-                            <option>Улучшение цеха</option>
-                            <option>Оборудование</option>
-                            <option>Доставка</option>
-                            <option>Бензин</option>
-                            <option>Реклама</option>
-                            <option>Налоги</option>
-                            <option>Аренда</option>
-                            <option>Водоканал</option>
-                            <option>Электроэнергия</option>
-                            <option>Уголь</option>
-                            <option>Прочие</option>
-                            <option>ЗП Саша</option>
-                            <option>ЗП Рома</option>
-                            <option>ЗП Леха</option>
-                            <option>ЗП Ара</option>
-                            <option>ЗП Коробов</option>
-                            <option>Фирма</option>
+                            <option>Магазины</option><option>Закуп материалов</option><option>Амортизация предприятия</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Бензин</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option><option>Фирма</option>
                         </select>
                     </div>
                     <div class="form-row">
@@ -241,7 +220,7 @@
             <!-- ASSETS -->
             <div id="assets" class="panel">
                 <div class="profit-box">
-                    <div class="label">📦 МАТЕРИАЛЫ НА СКЛАДЕ</div>
+                    <div class="label">📦 НА СКЛАДЕ</div>
                     <div class="big-value assets" id="totalAssets">0 ₽</div>
                 </div>
                 <button class="btn btn-primary" onclick="openModal('addAsset')" style="margin-bottom:10px">➕ Добавить</button>
@@ -278,7 +257,6 @@
     </nav>
 </div>
 <div class="toast" id="toast"></div>
-
 <!-- MODALS -->
 <div class="modal" id="modalNewProject"><div class="modal-content">
     <div class="modal-header"><div class="modal-title">➕ Новый проект</div><button class="modal-close" onclick="closeModal('newProject')">✕</button></div>
@@ -332,64 +310,156 @@ let data={projects:[],income:[],expenses:[],assets:[]};
 let projFilter='active', incomeFilter='active', expenseFilter='active';
 let isSyncing=false, currentPhoto=null;
 
+// ========== INIT ==========
 async function init(){
     loadLocal();
     setDefaultDates();
     updateAll();
-    await loadFromCloud();
+    await syncNow();
     setInterval(()=>{if(!isSyncing)loadFromCloud()},30000);
 }
 
 function loadLocal(){
-    const s=localStorage.getItem('idealMebelV12');
-    if(s){const d=JSON.parse(s);data.projects=d.projects||[];data.income=d.income||[];data.expenses=d.expenses||[];data.assets=d.assets||[]}
+    try{
+        const s=localStorage.getItem('idealMebelV13');
+        if(s){const d=JSON.parse(s);data.projects=d.projects||[];data.income=d.income||[];data.expenses=d.expenses||[];data.assets=d.assets||[]}
+    }catch(e){console.error('loadLocal error',e)}
 }
-function saveLocal(){localStorage.setItem('idealMebelV12',JSON.stringify(data))}
+
+function saveLocal(){
+    try{localStorage.setItem('idealMebelV13',JSON.stringify(data))}catch(e){console.error('saveLocal error',e)}
+}
+
+// ========== SYNC - КЛЮЧЕВАЯ ЛОГИКА ==========
+// Правило: при мерже ВСЕГДА побеждает версия с более поздним updatedAt
+// Если запись архивирована (_archived=true) - это ВСЕГДА приоритет
+
+function mergeArrays(local, cloud){
+    const map = new Map();
+    
+    // Сначала добавляем все из облака
+    for(const item of cloud){
+        if(item && item.id) map.set(item.id, {...item});
+    }
+    
+    // Потом проверяем локальные
+    for(const item of local){
+        if(!item || !item.id) continue;
+        
+        const cloudItem = map.get(item.id);
+        
+        if(!cloudItem){
+            // Нет в облаке - добавляем локальную
+            map.set(item.id, {...item});
+        } else {
+            // Есть в облаке - сравниваем
+            // ПРАВИЛО 1: Если локальная архивирована - она побеждает
+            if(item._archived && !cloudItem._archived){
+                map.set(item.id, {...item});
+            }
+            // ПРАВИЛО 2: Если облачная архивирована - она побеждает
+            else if(cloudItem._archived && !item._archived){
+                map.set(item.id, {...cloudItem});
+            }
+            // ПРАВИЛО 3: Сравниваем по updatedAt
+            else {
+                const localTime = item.updatedAt || item.createdAt || '0';
+                const cloudTime = cloudItem.updatedAt || cloudItem.createdAt || '0';
+                if(localTime > cloudTime){
+                    map.set(item.id, {...item});
+                } else {
+                    map.set(item.id, {...cloudItem});
+                }
+            }
+        }
+    }
+    
+    return Array.from(map.values());
+}
 
 async function loadFromCloud(){
-    if(isSyncing)return;
-    isSyncing=true;
+    if(isSyncing) return;
+    isSyncing = true;
     setSyncStatus('syncing','Загрузка...');
+    
     try{
-        const r=await fetch(SYNC_URL+'?action=getData&t='+Date.now());
-        const cloud=await r.json();
-        if(cloud.projects){
-            data.projects=mergeById(data.projects,cloud.projects);
-            data.income=mergeById(data.income,cloud.income||[]);
-            data.expenses=mergeById(data.expenses,cloud.expenses||[]);
-            data.assets=mergeById(data.assets,cloud.assets||[]);
+        const r = await fetch(SYNC_URL+'?action=getData&t='+Date.now());
+        const cloud = await r.json();
+        
+        if(cloud && cloud.projects){
+            // Мержим с приоритетом архивированных
+            data.projects = mergeArrays(data.projects, cloud.projects || []);
+            data.income = mergeArrays(data.income, cloud.income || []);
+            data.expenses = mergeArrays(data.expenses, cloud.expenses || []);
+            data.assets = mergeArrays(data.assets, cloud.assets || []);
+            
             recalcProjectPaid();
             convertNumbers();
             saveLocal();
             updateAll();
             setSyncStatus('online','Синхронизировано');
-        }else{setSyncStatus('offline','Ошибка')}
-    }catch(e){console.error(e);setSyncStatus('offline','Офлайн')}
-    isSyncing=false;
+        } else {
+            setSyncStatus('offline','Ошибка загрузки');
+        }
+    }catch(e){
+        console.error('loadFromCloud error:', e);
+        setSyncStatus('offline','Офлайн');
+    }
+    isSyncing = false;
 }
 
 async function saveToCloud(){
-    if(isSyncing)return;
-    isSyncing=true;
+    if(isSyncing) return;
+    isSyncing = true;
     setSyncStatus('syncing','Сохранение...');
+    
     try{
-        const r=await fetch(SYNC_URL+'?action=saveData',{method:'POST',body:JSON.stringify(data)});
-        const result=await r.json();
-        setSyncStatus(result.success?'online':'offline',result.success?'Сохранено':'Ошибка');
-    }catch(e){console.error(e);setSyncStatus('offline','Офлайн')}
-    isSyncing=false;
+        // Сначала загружаем актуальные данные из облака
+        const r1 = await fetch(SYNC_URL+'?action=getData&t='+Date.now());
+        const cloud = await r1.json();
+        
+        if(cloud && cloud.projects){
+            // Мержим - локальные изменения имеют приоритет если updatedAt новее
+            data.projects = mergeArrays(data.projects, cloud.projects || []);
+            data.income = mergeArrays(data.income, cloud.income || []);
+            data.expenses = mergeArrays(data.expenses, cloud.expenses || []);
+            data.assets = mergeArrays(data.assets, cloud.assets || []);
+        }
+        
+        // Отправляем объединённые данные
+        const r2 = await fetch(SYNC_URL+'?action=saveData',{
+            method:'POST',
+            body:JSON.stringify(data)
+        });
+        const result = await r2.json();
+        
+        if(result.success){
+            saveLocal();
+            setSyncStatus('online','Сохранено');
+        } else {
+            setSyncStatus('offline','Ошибка сохранения');
+        }
+    }catch(e){
+        console.error('saveToCloud error:', e);
+        setSyncStatus('offline','Офлайн');
+    }
+    isSyncing = false;
 }
 
-function mergeById(local,cloud){
-    const map=new Map();
-    cloud.forEach(item=>{if(item.id)map.set(item.id,item)});
-    local.forEach(item=>{if(item.id)map.set(item.id,item)});
-    return Array.from(map.values());
+async function syncNow(){
+    toast('🔄');
+    await saveToCloud();
+    await loadFromCloud();
+    recalcProjectPaid();
+    updateAll();
+    toast('✅');
 }
 
 function recalcProjectPaid(){
     data.projects.forEach(p=>{
-        p.paid=data.income.filter(i=>i.projectId===p.id&&!i._archived).reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
+        p.paid = data.income
+            .filter(i => i.projectId === p.id && !i._archived)
+            .reduce((s,i) => s + (parseFloat(i.amount)||0), 0);
     });
 }
 
@@ -400,8 +470,10 @@ function convertNumbers(){
     data.assets.forEach(a=>{a.qty=parseFloat(a.qty)||0;a.pricePerUnit=parseFloat(a.pricePerUnit)||0;a.totalCost=parseFloat(a.totalCost)||0});
 }
 
-async function syncNow(){toast('🔄');await saveToCloud();await loadFromCloud();updateAll();toast('✅')}
-function setSyncStatus(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncStatus').textContent=t}
+function setSyncStatus(s,t){
+    document.getElementById('syncDot').className='sync-dot '+s;
+    document.getElementById('syncStatus').textContent=t;
+}
 
 function setDefaultDates(){
     const t=new Date();
@@ -411,6 +483,7 @@ function setDefaultDates(){
     document.getElementById('dateFrom').value=m.toISOString().split('T')[0];
 }
 
+// ========== UI ==========
 function showPanel(n){
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
@@ -425,8 +498,10 @@ function closeModal(n){document.getElementById('modal'+n.charAt(0).toUpperCase()
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',1500)}
 function fmt(n){return(Math.round(n)||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'}
 function getDate(){return new Date().toISOString().split('T')[0]}
+function getNow(){return new Date().toISOString()}
 function fmtDate(d){if(!d)return'—';const p=d.split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:d}
 
+// ========== PHOTO - СИЛЬНОЕ СЖАТИЕ ==========
 function previewPhoto(input){
     if(input.files&&input.files[0]){
         const reader=new FileReader();
@@ -434,11 +509,17 @@ function previewPhoto(input){
             const img=new Image();
             img.onload=()=>{
                 const canvas=document.createElement('canvas');
-                let w=img.width,h=img.height;const max=600;
-                if(w>max||h>max){if(w>h){h=h*max/w;w=max}else{w=w*max/h;h=max}}
+                // Сжимаем до 300px максимум для экономии места
+                let w=img.width, h=img.height;
+                const max=300;
+                if(w>max||h>max){
+                    if(w>h){h=h*max/w;w=max}
+                    else{w=w*max/h;h=max}
+                }
                 canvas.width=w;canvas.height=h;
                 canvas.getContext('2d').drawImage(img,0,0,w,h);
-                currentPhoto=canvas.toDataURL('image/jpeg',0.6);
+                // Качество 0.4 для минимального размера
+                currentPhoto=canvas.toDataURL('image/jpeg',0.4);
                 document.getElementById('photoPreview').src=currentPhoto;
                 document.getElementById('photoPreview').style.display='block';
             };
@@ -453,7 +534,7 @@ function viewPhoto(id){
     if(e&&e.photo){document.getElementById('modalPhotoImg').src=e.photo;openModal('photo')}
 }
 
-// === PROJECTS ===
+// ========== PROJECTS ==========
 function saveProject(){
     const author=document.getElementById('projectAuthor').value.trim();
     const n=document.getElementById('projectName').value.trim();
@@ -463,15 +544,26 @@ function saveProject(){
     const ds=document.getElementById('projectDateStart').value;
     const dl=document.getElementById('projectDeadline').value;
     if(!n||!s)return toast('❌ Заполни название и сумму');
+    
+    const now = getNow();
     const id='П-'+Date.now();
-    data.projects.push({id,name:n,client:cl,phone:ph,sum:s,paid:0,status:'active',stage:0,dateStart:ds||getDate(),deadline:dl||'',author,createdAt:new Date().toISOString()});
+    data.projects.push({id,name:n,client:cl,phone:ph,sum:s,paid:0,status:'active',stage:0,dateStart:ds||getDate(),deadline:dl||'',author,createdAt:now,updatedAt:now});
+    
     saveLocal();saveToCloud();updateAll();closeModal('newProject');toast('✅');
     document.getElementById('projectName').value='';document.getElementById('projectClient').value='';document.getElementById('projectPhone').value='';document.getElementById('projectSum').value='';
 }
 
 function filterProj(s,b){projFilter=s;document.querySelectorAll('#projectsTabs .tab-btn').forEach(t=>t.classList.remove('active'));b.classList.add('active');renderProjects()}
-function changeProjStatus(id,s){const p=data.projects.find(x=>x.id===id);if(p){p.status=s;saveLocal();saveToCloud();renderProjects();toast('✅')}}
-function changeStage(id,s){const p=data.projects.find(x=>x.id===id);if(p){p.stage=s;saveLocal();saveToCloud();viewProject(id)}}
+
+function changeProjStatus(id,s){
+    const p=data.projects.find(x=>x.id===id);
+    if(p){p.status=s;p.updatedAt=getNow();saveLocal();saveToCloud();renderProjects();toast('✅')}
+}
+
+function changeStage(id,s){
+    const p=data.projects.find(x=>x.id===id);
+    if(p){p.stage=s;p.updatedAt=getNow();saveLocal();saveToCloud();viewProject(id)}
+}
 
 function viewProject(id){
     const p=data.projects.find(x=>x.id===id);if(!p)return;
@@ -502,7 +594,7 @@ function viewProject(id){
     openModal('viewProject');
 }
 
-// === INCOME ===
+// ========== INCOME ==========
 function saveIncome(){
     const author=document.getElementById('incomeAuthor').value.trim();
     const pId=document.getElementById('incomeProject').value;
@@ -511,24 +603,35 @@ function saveIncome(){
     const mt=document.getElementById('incomeMethod').value;
     const nt=document.getElementById('incomeNote').value;
     if(!pId||!am)return toast('❌ Выбери проект и сумму');
+    
+    const now = getNow();
     const id='Д-'+Date.now();
-    data.income.push({id,projectId:pId,amount:am,type:tp,method:mt,note:nt,date:getDate(),author,createdAt:new Date().toISOString()});
+    data.income.push({id,projectId:pId,amount:am,type:tp,method:mt,note:nt,date:getDate(),author,createdAt:now,updatedAt:now});
+    
     const pr=data.projects.find(p=>p.id===pId);
-    if(pr)pr.paid+=am;
+    if(pr){pr.paid+=am;pr.updatedAt=now}
+    
     saveLocal();saveToCloud();updateAll();toast('✅');
     document.getElementById('incomeAmount').value='';document.getElementById('incomeNote').value='';
 }
 
 function setIncomeFilter(f,b){incomeFilter=f;document.querySelectorAll('#incomeTabs .tab-btn').forEach(t=>t.classList.remove('active'));b.classList.add('active');renderIncome()}
 
-function archiveIncome(id,who){
-    const name=who||prompt('Кто архивирует?');
-    if(!name)return;
+function archiveIncome(id){
+    const name = prompt('Кто архивирует?');
+    if(!name) return;
+    
     const i=data.income.find(x=>x.id===id);
     if(i){
-        i._archived=true;i.archivedBy=name;i.archivedAt=new Date().toISOString();
+        const now = getNow();
+        i._archived=true;
+        i.archivedBy=name;
+        i.archivedAt=now;
+        i.updatedAt=now; // ВАЖНО: обновляем время для правильного мержа
+        
         const pr=data.projects.find(p=>p.id===i.projectId);
-        if(pr)pr.paid-=i.amount;
+        if(pr){pr.paid-=i.amount;pr.updatedAt=now}
+        
         saveLocal();saveToCloud();updateAll();toast('📦 В архив');
     }
 }
@@ -536,14 +639,18 @@ function archiveIncome(id,who){
 function restoreIncome(id){
     const i=data.income.find(x=>x.id===id);
     if(i){
+        const now = getNow();
         i._archived=false;
+        i.updatedAt=now;
+        
         const pr=data.projects.find(p=>p.id===i.projectId);
-        if(pr)pr.paid+=i.amount;
+        if(pr){pr.paid+=i.amount;pr.updatedAt=now}
+        
         saveLocal();saveToCloud();updateAll();toast('♻️ Восстановлено');
     }
 }
 
-// === EXPENSE ===
+// ========== EXPENSE ==========
 function saveExpense(){
     const author=document.getElementById('expenseAuthor').value.trim();
     const pId=document.getElementById('expenseProject').value;
@@ -552,8 +659,11 @@ function saveExpense(){
     const mt=document.getElementById('expenseMethod').value;
     const ds=document.getElementById('expenseDesc').value;
     if(!am)return toast('❌ Введи сумму');
+    
+    const now = getNow();
     const id='Р-'+Date.now();
-    data.expenses.push({id,projectId:pId,category:cat,amount:am,method:mt,desc:ds,photo:currentPhoto,date:getDate(),author,createdAt:new Date().toISOString()});
+    data.expenses.push({id,projectId:pId,category:cat,amount:am,method:mt,desc:ds,photo:currentPhoto,date:getDate(),author,createdAt:now,updatedAt:now});
+    
     saveLocal();saveToCloud();updateAll();toast('✅');
     document.getElementById('expenseAmount').value='';document.getElementById('expenseDesc').value='';
     document.getElementById('expensePhoto').value='';document.getElementById('photoPreview').style.display='none';currentPhoto=null;
@@ -561,22 +671,34 @@ function saveExpense(){
 
 function setExpenseFilter(f,b){expenseFilter=f;document.querySelectorAll('#expenseTabs .tab-btn').forEach(t=>t.classList.remove('active'));b.classList.add('active');renderExpenses()}
 
-function archiveExpense(id,who){
-    const name=who||prompt('Кто архивирует?');
-    if(!name)return;
+function archiveExpense(id){
+    const name = prompt('Кто архивирует?');
+    if(!name) return;
+    
     const e=data.expenses.find(x=>x.id===id);
     if(e){
-        e._archived=true;e.archivedBy=name;e.archivedAt=new Date().toISOString();
+        const now = getNow();
+        e._archived=true;
+        e.archivedBy=name;
+        e.archivedAt=now;
+        e.updatedAt=now; // ВАЖНО: обновляем время для правильного мержа
+        
         saveLocal();saveToCloud();updateAll();toast('📦 В архив');
     }
 }
 
 function restoreExpense(id){
     const e=data.expenses.find(x=>x.id===id);
-    if(e){e._archived=false;saveLocal();saveToCloud();updateAll();toast('♻️ Восстановлено')}
+    if(e){
+        const now = getNow();
+        e._archived=false;
+        e.updatedAt=now;
+        
+        saveLocal();saveToCloud();updateAll();toast('♻️ Восстановлено');
+    }
 }
 
-// === ASSETS ===
+// ========== ASSETS ==========
 function addAsset(){
     const author=document.getElementById('assetAuthor').value.trim();
     const n=document.getElementById('newAssetName').value.trim();
@@ -584,10 +706,18 @@ function addAsset(){
     const u=document.getElementById('newAssetUnit').value;
     const c=parseFloat(document.getElementById('newAssetCost').value)||0;
     if(!n||!q||!c)return toast('❌ Заполни все поля');
+    
+    const now = getNow();
     const pp=c/q;
     const ex=data.assets.find(a=>a.name.toLowerCase()===n.toLowerCase()&&a.unit===u);
-    if(ex){ex.qty+=q;ex.totalCost+=c;ex.pricePerUnit=ex.totalCost/ex.qty}
-    else{const id='А-'+Date.now();data.assets.push({id,name:n,qty:q,unit:u,pricePerUnit:pp,totalCost:c,author})}
+    
+    if(ex){
+        ex.qty+=q;ex.totalCost+=c;ex.pricePerUnit=ex.totalCost/ex.qty;ex.updatedAt=now;
+    } else {
+        const id='А-'+Date.now();
+        data.assets.push({id,name:n,qty:q,unit:u,pricePerUnit:pp,totalCost:c,author,createdAt:now,updatedAt:now});
+    }
+    
     saveLocal();saveToCloud();updateAll();closeModal('addAsset');toast('✅');
     document.getElementById('newAssetName').value='';document.getElementById('newAssetQty').value='';document.getElementById('newAssetCost').value='';
 }
@@ -606,13 +736,20 @@ function useAsset(){
     const pId=document.getElementById('useAssetProject').value;
     const a=data.assets.find(x=>x.id===aId);
     if(!a||q<=0||q>a.qty)return toast('❌ Проверь количество');
-    a.qty-=q;const uc=a.pricePerUnit*q;a.totalCost=a.qty*a.pricePerUnit;
+    
+    const now = getNow();
+    a.qty-=q;
+    const uc=a.pricePerUnit*q;
+    a.totalCost=a.qty*a.pricePerUnit;
+    a.updatedAt=now;
+    
     const id='Р-'+Date.now();
-    data.expenses.push({id,projectId:pId,category:'Со склада',amount:uc,desc:`${a.name} x${q} ${a.unit}`,date:getDate(),author});
+    data.expenses.push({id,projectId:pId,category:'Со склада',amount:uc,desc:`${a.name} x${q} ${a.unit}`,date:getDate(),author,createdAt:now,updatedAt:now});
+    
     saveLocal();saveToCloud();updateAll();closeModal('useAsset');toast('✅');
 }
 
-// === RENDER ===
+// ========== RENDER ==========
 function updateAll(){updateSelects();updateHome();updateAlerts();renderProjects();renderIncome();renderExpenses();renderAssets();updateAnalytics()}
 
 function updateSelects(){
@@ -625,7 +762,7 @@ function updateSelects(){
 function updateAlerts(){
     const t=getDate();
     const ov=data.projects.filter(p=>p.status==='active'&&p.deadline&&p.deadline<t);
-    document.getElementById('alerts').innerHTML=ov.length?`<div class="alert"><span>⚠️</span><span>${ov.length} просрочено!</span></div>`:'';
+    document.getElementById('alerts').innerHTML=ov.length?`<div class="alert"><span>⚠️ ${ov.length} просрочено!</span></div>`:'';
 }
 
 function updateHome(){
@@ -635,6 +772,7 @@ function updateHome(){
     const tE=activeE.reduce((s,e)=>s+e.amount,0);
     const tA=data.assets.reduce((s,a)=>s+(a.totalCost||0),0);
     const profit=tI-tE;
+    
     document.getElementById('homeIncome').textContent=fmt(tI);
     document.getElementById('homeExpense').textContent=fmt(tE);
     document.getElementById('homeProfit').textContent=fmt(profit);
@@ -642,7 +780,8 @@ function updateHome(){
     document.getElementById('homeFree').textContent=fmt(profit-tA);
     
     const all=[...activeI.map(i=>({...i,_t:'i'})),...activeE.map(e=>({...e,_t:'e'}))]
-        .sort((a,b)=>(b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||'')).slice(0,5);
+        .sort((a,b)=>(b.updatedAt||b.createdAt||b.date||'').localeCompare(a.updatedAt||a.createdAt||a.date||'')).slice(0,5);
+    
     document.getElementById('recentOps').innerHTML=all.length?all.map(o=>{
         if(o._t==='i'){
             const pr=data.projects.find(p=>p.id===o.projectId);
@@ -657,6 +796,7 @@ function renderProjects(){
     let l=data.projects.filter(p=>p.status===projFilter);
     const st=['Замер','Дизайн','Произв.','Доставка','Монтаж','Готово'];
     const bd={active:'<span class="badge badge-active">В работе</span>',done:'<span class="badge badge-done">Завершён</span>',archive:'<span class="badge badge-archive">Архив</span>'};
+    
     document.getElementById('projectsList').innerHTML=l.length?l.map(p=>{
         const pc=p.sum?Math.round((p.paid/p.sum)*100):0;
         const pE=data.expenses.filter(e=>e.projectId===p.id&&!e._archived).reduce((s,e)=>s+e.amount,0);
@@ -690,7 +830,7 @@ function renderIncome(){
         return`<div class="list-item ${isArch?'archived':''}">
             <div class="row"><div><div class="title">${pr?pr.name:i.projectId}</div><div class="subtitle">${fmtDate(i.date)} • ${i.type} • ${i.method||''}</div>${i.author?`<div class="author">👤 ${i.author}</div>`:''}</div><div class="amount income">+${fmt(i.amount)}</div></div>
             ${i.note?`<div class="subtitle">💬 ${i.note}</div>`:''}
-            ${isArch?`<div class="subtitle" style="color:var(--red)">🗑 ${i.archivedBy||''} • ${fmtDate(i.archivedAt?.split('T')[0])}</div>`:''}
+            ${isArch?`<div class="subtitle" style="color:var(--red)">🗑 ${i.archivedBy||''} • ${fmtDate((i.archivedAt||'').split('T')[0])}</div>`:''}
             <div class="actions">
                 ${isArch?`<button class="action-btn success" onclick="restoreIncome('${i.id}')">♻️ Восстановить</button>`:`<button class="action-btn danger" onclick="archiveIncome('${i.id}')">🗑 В архив</button>`}
             </div>
@@ -710,7 +850,7 @@ function renderExpenses(){
             <div class="row"><div><div class="title">${e.category}</div><div class="subtitle">${fmtDate(e.date)} • ${e.projectId} • ${e.method||''}</div>${e.author?`<div class="author">👤 ${e.author}</div>`:''}</div><div class="amount expense">-${fmt(e.amount)}</div></div>
             ${e.desc?`<div class="subtitle">📝 ${e.desc}</div>`:''}
             ${e.photo?`<img src="${e.photo}" class="photo-thumb" onclick="viewPhoto('${e.id}')">`:''}
-            ${isArch?`<div class="subtitle" style="color:var(--red)">🗑 ${e.archivedBy||''} • ${fmtDate(e.archivedAt?.split('T')[0])}</div>`:''}
+            ${isArch?`<div class="subtitle" style="color:var(--red)">🗑 ${e.archivedBy||''} • ${fmtDate((e.archivedAt||'').split('T')[0])}</div>`:''}
             <div class="actions">
                 ${isArch?`<button class="action-btn success" onclick="restoreExpense('${e.id}')">♻️ Восстановить</button>`:`<button class="action-btn danger" onclick="archiveExpense('${e.id}')">🗑 В архив</button>`}
             </div>
@@ -735,6 +875,7 @@ function updateAnalytics(){
     const tI=income.reduce((s,i)=>s+i.amount,0);
     const tE=expenses.reduce((s,e)=>s+e.amount,0);
     const tA=data.assets.reduce((s,a)=>s+(a.totalCost||0),0);
+    
     document.getElementById('statIncome').textContent=fmt(tI);
     document.getElementById('statExpense').textContent=fmt(tE);
     document.getElementById('statFree').textContent=fmt(tI-tE-tA);
