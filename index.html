@@ -223,7 +223,7 @@
                     <div class="form-group"><label>Проект</label><select id="expenseProject"></select></div>
                     <div class="form-group"><label>Категория</label>
                         <select id="expenseCategory">
-                            <option>Закуп материалов</option><option>ЗП рабочим</option><option>Аренда</option><option>Электроэнергия</option><option>Доставка</option><option>Реклама</option><option>Оборудование</option><option>Налоги</option><option>Водоканал</option><option>Уголь</option><option>Амортизация</option><option>Улучшение цеха</option><option>Личные</option><option>Прочие</option>
+                            <option>Закуп материалов</option><option>Амортизация предприятия</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option>
                         </select>
                     </div>
                     <div class="form-row">
@@ -408,7 +408,7 @@ function importBackup(i){if(!i.files[0])return;const r=new FileReader();r.onload
 document.getElementById('dateFrom').addEventListener('change',updateAnalytics);
 document.getElementById('dateTo').addEventListener('change',updateAnalytics);
 document.addEventListener('touchmove',function(e){},{ passive: true });
-init();
+init();setInterval(()=>{if(!isSyncing)loadFromCloud()},30000);
 </script>
 </body>
 </html>
