@@ -113,11 +113,11 @@
             <!-- ГЛАВНАЯ -->
             <div id="home" class="panel active">
                 <div class="period-tabs">
-                    <button class="period-btn active" onclick="setPeriod('all')">Всё</button>
-                    <button class="period-btn" onclick="setPeriod('year')">Год</button>
-                    <button class="period-btn" onclick="setPeriod('month')">Мес</button>
-                    <button class="period-btn" onclick="setPeriod('week')">Нед</button>
-                    <button class="period-btn" onclick="setPeriod('custom')">📅</button>
+                    <button class="period-btn active" onclick="setPeriod('all',this)">Всё</button>
+                    <button class="period-btn" onclick="setPeriod('year',this)">Год</button>
+                    <button class="period-btn" onclick="setPeriod('month',this)">Мес</button>
+                    <button class="period-btn" onclick="setPeriod('week',this)">Нед</button>
+                    <button class="period-btn" onclick="setPeriod('custom',this)">📅</button>
                 </div>
                 <div id="customPeriod" style="display:none;margin-bottom:14px">
                     <div style="display:flex;gap:8px">
@@ -144,10 +144,10 @@
             <!-- ПРОЕКТЫ -->
             <div id="projects" class="panel">
                 <div class="tabs" id="projectsTabs">
-                    <button class="tab-btn active" onclick="setProjFilter('active')">В работе</button>
-                    <button class="tab-btn" onclick="setProjFilter('done')">Завершённые</button>
-                    <button class="tab-btn" onclick="setProjFilter('archive')">Архив</button>
-                    <button class="tab-btn" onclick="setProjFilter('deleted')">Удалённые</button>
+                    <button class="tab-btn active" onclick="setProjFilter('active',this)">В работе</button>
+                    <button class="tab-btn" onclick="setProjFilter('done',this)">Завершённые</button>
+                    <button class="tab-btn" onclick="setProjFilter('archive',this)">Архив</button>
+                    <button class="tab-btn" onclick="setProjFilter('deleted',this)">Удалённые</button>
                 </div>
                 <button class="btn btn-primary" onclick="newProject()" style="margin-bottom:14px">➕ Новый проект</button>
                 <div id="projectsList"></div>
@@ -169,9 +169,9 @@
                 <div class="card">
                     <div class="card-title">📋 История</div>
                     <div class="tabs" id="incomeTabs">
-                        <button class="tab-btn active" onclick="setIncFilter('active')">Актуальные</button>
-                        <button class="tab-btn" onclick="setIncFilter('archived')">Архив</button>
-                        <button class="tab-btn" onclick="setIncFilter('deleted')">Удалённые</button>
+                        <button class="tab-btn active" onclick="setIncFilter('active',this)">Актуальные</button>
+                        <button class="tab-btn" onclick="setIncFilter('archived',this)">Архив</button>
+                        <button class="tab-btn" onclick="setIncFilter('deleted',this)">Удалённые</button>
                     </div>
                     <div id="incomeList"></div>
                 </div>
@@ -194,9 +194,9 @@
                 <div class="card">
                     <div class="card-title">📋 История</div>
                     <div class="tabs" id="expenseTabs">
-                        <button class="tab-btn active" onclick="setExpFilter('active')">Актуальные</button>
-                        <button class="tab-btn" onclick="setExpFilter('archived')">Архив</button>
-                        <button class="tab-btn" onclick="setExpFilter('deleted')">Удалённые</button>
+                        <button class="tab-btn active" onclick="setExpFilter('active',this)">Актуальные</button>
+                        <button class="tab-btn" onclick="setExpFilter('archived',this)">Архив</button>
+                        <button class="tab-btn" onclick="setExpFilter('deleted',this)">Удалённые</button>
                     </div>
                     <div id="expenseList"></div>
                 </div>
@@ -417,17 +417,17 @@ function showPanel(name) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(name).classList.add('active');
-    event.currentTarget.classList.add('active');
+    document.querySelector('.nav-item[onclick*="' + name + '"]').classList.add('active');
 }
 
 function openModal(name) { document.getElementById('modal' + name[0].toUpperCase() + name.slice(1)).classList.add('active'); }
 function closeModal(name) { document.getElementById('modal' + name[0].toUpperCase() + name.slice(1)).classList.remove('active'); }
 function openSettings() { openModal('settings'); }
 
-function setPeriod(p) {
+function setPeriod(p, btn) {
     period = p;
     document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    if(btn) btn.classList.add('active');
     
     const customDiv = document.getElementById('customPeriod');
     if(p === 'custom') {
@@ -451,24 +451,24 @@ function applyCustomPeriod() {
     renderHome();
 }
 
-function setProjFilter(f) {
+function setProjFilter(f, btn) {
     projF = f;
     document.querySelectorAll('#projectsTabs .tab-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    if(btn) btn.classList.add('active');
     renderProjects();
 }
 
-function setIncFilter(f) {
+function setIncFilter(f, btn) {
     incF = f;
     document.querySelectorAll('#incomeTabs .tab-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    if(btn) btn.classList.add('active');
     renderIncome();
 }
 
-function setExpFilter(f) {
+function setExpFilter(f, btn) {
     expF = f;
     document.querySelectorAll('#expenseTabs .tab-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    if(btn) btn.classList.add('active');
     renderExpenses();
 }
 
