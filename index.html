@@ -276,6 +276,36 @@
 </div></div>
 <!-- Фото -->
 <div class="modal" id="modalPhoto" onclick="closeModal('photo')"><img id="modalPhotoImg" style="max-width:95%;max-height:90%;border-radius:12px"></div>
+<!-- Редактирование дохода -->
+<div class="modal" id="modalEditIncome"><div class="modal-content">
+    <div class="modal-header"><div class="modal-title">✏️ Редактировать доход</div><button class="modal-close" onclick="closeModal('editIncome')">✕</button></div>
+    <input type="hidden" id="editIncomeId">
+    <div class="form-group"><label>Кто записывает</label><input type="text" id="editIncomeAuthor"></div>
+    <div class="form-group"><label>Проект</label><select id="editIncomeProject"></select></div>
+    <div class="form-group"><label>Сумма (₽)</label><input type="number" id="editIncomeAmount" inputmode="decimal"></div>
+    <div class="form-row">
+        <div class="form-group"><label>Тип</label><select id="editIncomeType"><option>Предоплата</option><option>Частичная</option><option>Финальная</option><option>Фирма</option></select></div>
+        <div class="form-group"><label>Способ</label><select id="editIncomeMethod"><option>Наличные</option><option>Безнал</option><option>Перевод</option></select></div>
+    </div>
+    <div class="form-group"><label>Дата</label><input type="date" id="editIncomeDate"></div>
+    <div class="form-group"><label>Примечание</label><input type="text" id="editIncomeNote"></div>
+    <button class="btn btn-primary" onclick="updateIncome()">✅ Сохранить</button>
+</div></div>
+<!-- Редактирование расхода -->
+<div class="modal" id="modalEditExpense"><div class="modal-content">
+    <div class="modal-header"><div class="modal-title">✏️ Редактировать расход</div><button class="modal-close" onclick="closeModal('editExpense')">✕</button></div>
+    <input type="hidden" id="editExpenseId">
+    <div class="form-group"><label>Кто записывает</label><input type="text" id="editExpenseAuthor"></div>
+    <div class="form-group"><label>Проект</label><select id="editExpenseProject"></select></div>
+    <div class="form-group"><label>Категория</label><select id="editExpenseCategory"><option>Магазины</option><option>Закуп материалов</option><option>Амортизация</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Бензин</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option><option>Фирма</option><option>Со склада</option></select></div>
+    <div class="form-row">
+        <div class="form-group"><label>Сумма (₽)</label><input type="number" id="editExpenseAmount" inputmode="decimal"></div>
+        <div class="form-group"><label>Способ</label><select id="editExpenseMethod"><option>Наличные</option><option>Безнал</option><option>Перевод</option></select></div>
+    </div>
+    <div class="form-group"><label>Дата</label><input type="date" id="editExpenseDate"></div>
+    <div class="form-group"><label>Описание</label><input type="text" id="editExpenseDesc"></div>
+    <button class="btn btn-primary" onclick="updateExpense()">✅ Сохранить</button>
+</div></div>
 
 <script>
 const API='https://script.google.com/macros/s/AKfycbwlmez3kvl2aq6oiDCbMRjBuwlyEVjkx0FNexmnU40A81JsMeI9fsmAResAoktYhr_0/exec';
@@ -683,6 +713,46 @@ async function restoreIncome(id) {
     }
 }
 
+function editIncome(id) {
+    const i = D.income.find(x => x.id === id);
+    if(!i) return;
+    
+    // Заполняем селект проектов
+    const active = D.projects.filter(p => !p._deleted);
+    document.getElementById('editIncomeProject').innerHTML = active.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    
+    document.getElementById('editIncomeId').value = id;
+    document.getElementById('editIncomeAuthor').value = i.author || '';
+    document.getElementById('editIncomeProject').value = i.projectId || '';
+    document.getElementById('editIncomeAmount').value = i.amount || '';
+    document.getElementById('editIncomeType').value = i.type || 'Предоплата';
+    document.getElementById('editIncomeMethod').value = i.method || 'Наличные';
+    document.getElementById('editIncomeDate').value = i.date || today();
+    document.getElementById('editIncomeNote').value = i.note || '';
+    
+    openModal('editIncome');
+}
+
+async function updateIncome() {
+    const id = document.getElementById('editIncomeId').value;
+    const i = D.income.find(x => x.id === id);
+    if(!i) return;
+    
+    const amount = parseFloat(document.getElementById('editIncomeAmount').value) || 0;
+    if(!amount) return toast('❌ Укажите сумму');
+    
+    i.author = document.getElementById('editIncomeAuthor').value.trim();
+    i.projectId = document.getElementById('editIncomeProject').value;
+    i.amount = amount;
+    i.type = document.getElementById('editIncomeType').value;
+    i.method = document.getElementById('editIncomeMethod').value;
+    i.date = document.getElementById('editIncomeDate').value;
+    i.note = document.getElementById('editIncomeNote').value;
+    i.ts = now();
+    
+    if(await saveCloud()) { closeModal('editIncome'); render(); toast('✅'); }
+}
+
 // === РАСХОДЫ ===
 async function saveExpense() {
     const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
@@ -744,6 +814,46 @@ async function restoreExpense(id) {
         e.ts = now();
         if(await saveCloud()) { render(); toast('♻️'); }
     }
+}
+
+function editExpense(id) {
+    const e = D.expenses.find(x => x.id === id);
+    if(!e) return;
+    
+    // Заполняем селект проектов
+    const active = D.projects.filter(p => !p._deleted);
+    document.getElementById('editExpenseProject').innerHTML = '<option value="Общие">Общие расходы</option>' + active.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    
+    document.getElementById('editExpenseId').value = id;
+    document.getElementById('editExpenseAuthor').value = e.author || '';
+    document.getElementById('editExpenseProject').value = e.projectId || 'Общие';
+    document.getElementById('editExpenseCategory').value = e.category || 'Магазины';
+    document.getElementById('editExpenseAmount').value = e.amount || '';
+    document.getElementById('editExpenseMethod').value = e.method || 'Наличные';
+    document.getElementById('editExpenseDate').value = e.date || today();
+    document.getElementById('editExpenseDesc').value = e.desc || '';
+    
+    openModal('editExpense');
+}
+
+async function updateExpense() {
+    const id = document.getElementById('editExpenseId').value;
+    const e = D.expenses.find(x => x.id === id);
+    if(!e) return;
+    
+    const amount = parseFloat(document.getElementById('editExpenseAmount').value) || 0;
+    if(!amount) return toast('❌ Укажите сумму');
+    
+    e.author = document.getElementById('editExpenseAuthor').value.trim();
+    e.projectId = document.getElementById('editExpenseProject').value;
+    e.category = document.getElementById('editExpenseCategory').value;
+    e.amount = amount;
+    e.method = document.getElementById('editExpenseMethod').value;
+    e.date = document.getElementById('editExpenseDate').value;
+    e.desc = document.getElementById('editExpenseDesc').value;
+    e.ts = now();
+    
+    if(await saveCloud()) { closeModal('editExpense'); render(); toast('✅'); }
 }
 
 // === СКЛАД ===
@@ -954,6 +1064,7 @@ function renderIncome() {
                 ${isArch && !isDel ? `<div class="subtitle" style="color:var(--text2)">📦 ${i._archivedBy || ''} • ${fmtD(i._archivedAt)}</div>` : ''}
                 <div class="actions">
                     ${isDel || isArch ? `<button class="action-btn success" onclick="restoreIncome('${i.id}')">♻️</button>` : `
+                        <button class="action-btn" onclick="editIncome('${i.id}')">✏️</button>
                         <button class="action-btn" onclick="archiveIncome('${i.id}')">📦</button>
                         <button class="action-btn danger" onclick="deleteIncome('${i.id}')">🗑</button>
                     `}
@@ -980,6 +1091,7 @@ function renderExpenses() {
                 ${isArch && !isDel ? `<div class="subtitle" style="color:var(--text2)">📦 ${e._archivedBy || ''} • ${fmtD(e._archivedAt)}</div>` : ''}
                 <div class="actions">
                     ${isDel || isArch ? `<button class="action-btn success" onclick="restoreExpense('${e.id}')">♻️</button>` : `
+                        <button class="action-btn" onclick="editExpense('${e.id}')">✏️</button>
                         <button class="action-btn" onclick="archiveExpense('${e.id}')">📦</button>
                         <button class="action-btn danger" onclick="deleteExpense('${e.id}')">🗑</button>
                     `}
