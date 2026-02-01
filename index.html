@@ -8,135 +8,111 @@
     <meta name="theme-color" content="#1a1a1a">
     <title>IDEAL MEBEL</title>
     <style>
-        :root {
-            --bg: #0d0d0d; --card: #1a1a1a; --card2: #252525;
-            --accent: #8B7355; --accent2: #A69076;
-            --green: #4CAF50; --red: #ef5350; --yellow: #FFB74D;
-            --text: #ffffff; --text2: #999999; --border: #333333;
-            --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html { height: 100%; overflow: hidden; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: var(--bg); color: var(--text); height: 100%; overflow: hidden; position: fixed; width: 100%; }
-        .app-container { display: flex; flex-direction: column; height: 100%; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
-        .header { background: linear-gradient(135deg, #2c2c2c, #1a1a1a); padding: 16px 20px; text-align: center; border-bottom: 1px solid var(--border); flex-shrink: 0; position: relative; }
-        .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
-        .header-sub { font-size: 11px; color: var(--text2); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .sync-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .sync-dot.online { background: var(--green); }
-        .sync-dot.offline { background: var(--red); }
-        .sync-dot.syncing { background: var(--yellow); animation: pulse 1s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-        .header-actions { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px; }
-        .header-btn { width: 34px; height: 34px; border-radius: 10px; background: var(--card2); border: 1px solid var(--border); color: white; font-size: 15px; cursor: pointer; }
-        .content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: none; }
-        .container { padding: 14px; max-width: 600px; margin: 0 auto; padding-bottom: 20px; }
-        .nav { background: var(--card); display: flex; justify-content: space-around; padding: 8px 4px; border-top: 1px solid var(--border); flex-shrink: 0; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text2); font-size: 9px; padding: 6px 8px; border-radius: 10px; cursor: pointer; border: none; background: none; min-width: 50px; }
-        .nav-item.active { color: var(--accent2); background: rgba(139,115,85,0.15); }
-        .nav-item span { font-size: 20px; }
-        .panel { display: none; }
-        .panel.active { display: block; }
-        .card { background: var(--card); border-radius: 16px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); }
-        .card-title { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 5px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        input, select { width: 100%; padding: 12px 14px; background: var(--card2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; outline: none; -webkit-appearance: none; }
-        input:focus, select:focus { border-color: var(--accent); }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
-        .btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
-        .btn-success { background: var(--green); color: white; }
-        .btn-danger { background: var(--red); color: white; }
-        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-        .summary-card { background: var(--card); border-radius: 14px; padding: 12px; border: 1px solid var(--border); }
-        .summary-card .label { font-size: 10px; color: var(--text2); margin-bottom: 3px; }
-        .summary-card .value { font-size: 18px; font-weight: 700; }
-        .summary-card .value.income { color: var(--green); }
-        .summary-card .value.expense { color: var(--red); }
-        .summary-card .value.profit { color: var(--accent2); }
-        .summary-card .value.assets { color: var(--yellow); }
-        .alerts { margin-bottom: 14px; }
-        .alert { background: var(--card); border-radius: 10px; padding: 10px 12px; border-left: 4px solid var(--red); font-size: 12px; }
-        .list-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .list-item.archived { opacity: 0.5; border-style: dashed; }
-        .list-item .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-        .list-item .title { font-weight: 600; font-size: 14px; }
-        .list-item .subtitle { font-size: 11px; color: var(--text2); margin-top: 3px; }
-        .list-item .amount { font-weight: 700; font-size: 15px; white-space: nowrap; }
-        .list-item .amount.income { color: var(--green); }
-        .list-item .amount.expense { color: var(--red); }
-        .list-item .author { font-size: 10px; color: var(--accent2); margin-top: 4px; font-weight: 600; }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 15px; font-size: 9px; font-weight: 600; margin-top: 6px; margin-right: 4px; }
-        .badge-active { background: rgba(76,175,80,0.2); color: var(--green); }
-        .badge-done { background: rgba(139,115,85,0.2); color: var(--accent2); }
-        .badge-archive { background: rgba(153,153,153,0.2); color: var(--text2); }
-        .badge-margin { background: rgba(255,183,77,0.2); color: var(--yellow); }
-        .progress-bar { height: 5px; background: var(--card2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
-        .progress-bar .fill { height: 100%; border-radius: 3px; }
-        .progress-green { background: var(--green); }
-        .progress-yellow { background: var(--yellow); }
-        .progress-red { background: var(--red); }
-        .actions { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
-        .action-btn { padding: 6px 12px; border: none; border-radius: 8px; font-size: 11px; cursor: pointer; background: var(--card2); color: var(--text); border: 1px solid var(--border); }
-        .action-btn.danger { color: var(--red); }
-        .action-btn.success { color: var(--green); }
-        .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
-        .tab-btn { padding: 8px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; color: var(--text2); font-size: 12px; white-space: nowrap; cursor: pointer; }
-        .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .stages { display: flex; gap: 3px; margin-top: 8px; flex-wrap: wrap; }
-        .stage { padding: 4px 8px; background: var(--card2); border-radius: 6px; font-size: 9px; color: var(--text2); cursor: pointer; }
-        .stage.active { background: var(--accent); color: white; }
-        .stage.done { background: var(--green); color: white; }
-        .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-        .quick-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 10px; cursor: pointer; }
-        .quick-btn span { font-size: 22px; }
-        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--card); padding: 12px 20px; border-radius: 12px; display: none; z-index: 300; border: 1px solid var(--border); font-size: 13px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 200; align-items: flex-end; }
-        .modal.active { display: flex; }
-        .modal#modalPhoto { align-items: center; justify-content: center; }
-        .modal-content { background: var(--card); border-radius: 20px 20px 0 0; padding: 18px; padding-bottom: calc(18px + var(--safe-bottom)); width: 100%; max-height: 85vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .modal-title { font-size: 17px; font-weight: 600; }
-        .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--card2); border: 1px solid var(--border); color: var(--text); font-size: 18px; cursor: pointer; }
-        .photo-preview { width: 100%; max-height: 100px; object-fit: cover; border-radius: 10px; margin-top: 8px; display: none; }
-        .photo-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: var(--card2); border: 2px dashed var(--border); border-radius: 10px; color: var(--text2); cursor: pointer; font-size: 13px; }
-        .photo-thumb { height: 40px; border-radius: 6px; margin-top: 6px; cursor: pointer; }
-        .date-filter { display: flex; gap: 8px; margin-bottom: 14px; }
-        .date-filter .form-group { flex: 1; margin-bottom: 0; }
-        .empty { text-align: center; padding: 30px; color: var(--text2); }
-        .empty span { font-size: 40px; display: block; margin-bottom: 10px; }
-        .profit-box { background: linear-gradient(135deg, var(--card2), var(--card)); border: 2px solid var(--accent); border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: center; }
-        .profit-box .big-value { font-size: 28px; font-weight: 700; }
-        .profit-box .label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
-        .contact-btns { display: flex; gap: 8px; margin-top: 10px; }
-        .contact-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 12px; cursor: pointer; text-decoration: none; text-align: center; }
-        .contact-btn.whatsapp { background: #25D366; color: white; }
-        .contact-btn.phone { background: var(--accent); color: white; }
+        :root{--bg:#0d0d0d;--card:#1a1a1a;--card2:#252525;--accent:#8B7355;--accent2:#A69076;--green:#4CAF50;--red:#ef5350;--yellow:#FFB74D;--text:#fff;--text2:#999;--border:#333}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        html,body{height:100%;overflow:hidden}
+        body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);position:fixed;width:100%}
+        .app{display:flex;flex-direction:column;height:100%;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+        .header{background:linear-gradient(135deg,#2c2c2c,#1a1a1a);padding:16px 20px;text-align:center;border-bottom:1px solid var(--border);position:relative}
+        .header h1{font-size:22px;font-weight:700;letter-spacing:2px}
+        .header-sub{font-size:11px;color:var(--text2);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+        .sync-dot{width:8px;height:8px;border-radius:50%}
+        .sync-dot.online{background:var(--green)}.sync-dot.offline{background:var(--red)}.sync-dot.syncing{background:var(--yellow);animation:pulse 1s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        .header-actions{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;gap:8px}
+        .header-btn{width:34px;height:34px;border-radius:10px;background:var(--card2);border:1px solid var(--border);color:#fff;font-size:15px;cursor:pointer}
+        .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+        .container{padding:14px;max-width:600px;margin:0 auto}
+        .nav{background:var(--card);display:flex;justify-content:space-around;padding:8px 4px;border-top:1px solid var(--border)}
+        .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text2);font-size:9px;padding:6px 8px;border-radius:10px;cursor:pointer;border:none;background:none;min-width:50px}
+        .nav-item.active{color:var(--accent2);background:rgba(139,115,85,.15)}
+        .nav-item span{font-size:20px}
+        .panel{display:none}.panel.active{display:block}
+        .card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid var(--border)}
+        .card-title{font-size:13px;color:var(--text2);margin-bottom:12px}
+        .form-group{margin-bottom:12px}
+        .form-group label{display:block;font-size:11px;color:var(--text2);margin-bottom:5px}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        input,select{width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;outline:none;-webkit-appearance:none}
+        .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+        .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+        .btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+        .btn-success{background:var(--green);color:#fff}
+        .btn-danger{background:var(--red);color:#fff}
+        .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+        .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+        .summary-card{background:var(--card);border-radius:14px;padding:12px;border:1px solid var(--border)}
+        .summary-card .label{font-size:10px;color:var(--text2);margin-bottom:3px}
+        .summary-card .value{font-size:18px;font-weight:700}
+        .summary-card .value.income{color:var(--green)}
+        .summary-card .value.expense{color:var(--red)}
+        .summary-card .value.profit{color:var(--accent2)}
+        .summary-card .value.assets{color:var(--yellow)}
+        .list-item{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
+        .list-item.archived{opacity:.5;border-style:dashed}
+        .list-item .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+        .list-item .title{font-weight:600;font-size:14px}
+        .list-item .subtitle{font-size:11px;color:var(--text2);margin-top:3px}
+        .list-item .amount{font-weight:700;font-size:15px}
+        .list-item .amount.income{color:var(--green)}
+        .list-item .amount.expense{color:var(--red)}
+        .list-item .author{font-size:10px;color:var(--accent2);margin-top:4px}
+        .badge{display:inline-block;padding:3px 8px;border-radius:15px;font-size:9px;font-weight:600;margin-top:6px;margin-right:4px}
+        .badge-active{background:rgba(76,175,80,.2);color:var(--green)}
+        .badge-done{background:rgba(139,115,85,.2);color:var(--accent2)}
+        .badge-archive{background:rgba(153,153,153,.2);color:var(--text2)}
+        .badge-margin{background:rgba(255,183,77,.2);color:var(--yellow)}
+        .progress-bar{height:5px;background:var(--card2);border-radius:3px;margin-top:8px}
+        .progress-bar .fill{height:100%;border-radius:3px}
+        .actions{display:flex;gap:5px;margin-top:8px}
+        .action-btn{padding:6px 12px;border:none;border-radius:8px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text);border:1px solid var(--border)}
+        .action-btn.danger{color:var(--red)}
+        .action-btn.success{color:var(--green)}
+        .tabs{display:flex;gap:6px;margin-bottom:14px}
+        .tab-btn{padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-size:12px;cursor:pointer}
+        .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .stages{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
+        .stage{padding:4px 8px;background:var(--card2);border-radius:6px;font-size:9px;color:var(--text2);cursor:pointer}
+        .stage.active{background:var(--accent);color:#fff}
+        .stage.done{background:var(--green);color:#fff}
+        .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+        .quick-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:10px;cursor:pointer}
+        .quick-btn span{font-size:22px}
+        .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--card);padding:12px 20px;border-radius:12px;display:none;z-index:300;border:1px solid var(--border)}
+        .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.9);z-index:200;align-items:flex-end}
+        .modal.active{display:flex}
+        .modal#modalPhoto{align-items:center;justify-content:center}
+        .modal-content{background:var(--card);border-radius:20px 20px 0 0;padding:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom));width:100%;max-height:85vh;overflow-y:auto}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .modal-title{font-size:17px;font-weight:600}
+        .modal-close{width:32px;height:32px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer}
+        .photo-preview{width:100%;max-height:100px;object-fit:cover;border-radius:10px;margin-top:8px;display:none}
+        .photo-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:var(--card2);border:2px dashed var(--border);border-radius:10px;color:var(--text2);cursor:pointer}
+        .photo-thumb{height:40px;border-radius:6px;margin-top:6px;cursor:pointer}
+        .date-filter{display:flex;gap:8px;margin-bottom:14px}
+        .date-filter .form-group{flex:1;margin-bottom:0}
+        .empty{text-align:center;padding:30px;color:var(--text2)}
+        .empty span{font-size:40px;display:block;margin-bottom:10px}
+        .profit-box{background:linear-gradient(135deg,var(--card2),var(--card));border:2px solid var(--accent);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center}
+        .profit-box .big-value{font-size:28px;font-weight:700}
+        .profit-box .label{font-size:11px;color:var(--text2);margin-bottom:4px}
+        .contact-btns{display:flex;gap:8px;margin-top:10px}
+        .contact-btn{flex:1;padding:10px;border-radius:10px;border:none;font-size:12px;cursor:pointer;text-decoration:none;text-align:center}
+        .contact-btn.whatsapp{background:#25D366;color:#fff}
+        .contact-btn.phone{background:var(--accent);color:#fff}
     </style>
 </head>
 <body>
-<div class="app-container">
+<div class="app">
     <div class="header">
         <h1>IDEAL MEBEL</h1>
         <div class="header-sub"><span class="sync-dot offline" id="syncDot"></span><span id="syncStatus">Загрузка...</span></div>
-        <div class="header-actions">
-            <button class="header-btn" onclick="syncNow()">🔄</button>
-            <button class="header-btn" onclick="openModal('settings')">⚙️</button>
-        </div>
+        <div class="header-actions"><button class="header-btn" onclick="manualSync()">🔄</button><button class="header-btn" onclick="openModal('settings')">⚙️</button></div>
     </div>
     <div class="content">
         <div class="container">
-            <!-- HOME -->
             <div id="home" class="panel active">
-                <div id="alerts" class="alerts"></div>
-                <div class="profit-box">
-                    <div class="label">💵 СВОБОДНЫЕ ДЕНЬГИ</div>
-                    <div class="big-value income" id="homeFree">0 ₽</div>
-                </div>
+                <div class="profit-box"><div class="label">💵 СВОБОДНЫЕ ДЕНЬГИ</div><div class="big-value income" id="homeFree">0 ₽</div></div>
                 <div class="summary-grid">
                     <div class="summary-card"><div class="label">💰 Доходы</div><div class="value income" id="homeIncome">0 ₽</div></div>
                     <div class="summary-card"><div class="label">💸 Расходы</div><div class="value expense" id="homeExpense">0 ₽</div></div>
@@ -151,7 +127,6 @@
                 </div>
                 <div class="card"><div class="card-title">📈 Последние</div><div id="recentOps"></div></div>
             </div>
-            <!-- PROJECTS -->
             <div id="projects" class="panel">
                 <div class="tabs" id="projectsTabs">
                     <button class="tab-btn active" onclick="filterProj('active',this)">В работе</button>
@@ -161,18 +136,17 @@
                 <button class="btn btn-primary" onclick="openModal('newProject')" style="margin-bottom:14px">➕ Новый проект</button>
                 <div id="projectsList"></div>
             </div>
-            <!-- INCOME -->
             <div id="income" class="panel">
                 <div class="card">
                     <div class="card-title">💰 Записать доход</div>
                     <div class="form-group"><label>Кто записывает</label><input type="text" id="incomeAuthor" placeholder="Имя"></div>
                     <div class="form-group"><label>Проект</label><select id="incomeProject"></select></div>
-                    <div class="form-group"><label>Сумма (₽)</label><input type="number" id="incomeAmount" placeholder="100000" inputmode="decimal"></div>
+                    <div class="form-group"><label>Сумма (₽)</label><input type="number" id="incomeAmount" inputmode="decimal"></div>
                     <div class="form-row">
                         <div class="form-group"><label>Тип</label><select id="incomeType"><option>Предоплата</option><option>Частичная</option><option>Финальная</option><option>Фирма</option></select></div>
                         <div class="form-group"><label>Способ</label><select id="incomeMethod"><option>Наличные</option><option>Безнал</option><option>Перевод</option></select></div>
                     </div>
-                    <div class="form-group"><label>Примечание</label><input type="text" id="incomeNote" placeholder="Необязательно"></div>
+                    <div class="form-group"><label>Примечание</label><input type="text" id="incomeNote"></div>
                     <button class="btn btn-success" onclick="saveIncome()">✅ Записать</button>
                 </div>
                 <div class="card">
@@ -184,28 +158,18 @@
                     <div id="incomeList"></div>
                 </div>
             </div>
-            <!-- EXPENSE -->
             <div id="expense" class="panel">
                 <div class="card">
                     <div class="card-title">💸 Записать расход</div>
                     <div class="form-group"><label>Кто записывает</label><input type="text" id="expenseAuthor" placeholder="Имя"></div>
                     <div class="form-group"><label>Проект</label><select id="expenseProject"></select></div>
-                    <div class="form-group"><label>Категория</label>
-                        <select id="expenseCategory">
-                            <option>Магазины</option><option>Закуп материалов</option><option>Амортизация предприятия</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Бензин</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option><option>Фирма</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label>Категория</label><select id="expenseCategory"><option>Магазины</option><option>Закуп материалов</option><option>Амортизация предприятия</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Бензин</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option><option>Фирма</option></select></div>
                     <div class="form-row">
-                        <div class="form-group"><label>Сумма (₽)</label><input type="number" id="expenseAmount" placeholder="50000" inputmode="decimal"></div>
+                        <div class="form-group"><label>Сумма (₽)</label><input type="number" id="expenseAmount" inputmode="decimal"></div>
                         <div class="form-group"><label>Способ</label><select id="expenseMethod"><option>Наличные</option><option>Безнал</option><option>Перевод</option></select></div>
                     </div>
-                    <div class="form-group"><label>Описание</label><input type="text" id="expenseDesc" placeholder="Что купил"></div>
-                    <div class="form-group">
-                        <label>Фото чека</label>
-                        <label class="photo-btn" for="expensePhoto">📷 Прикрепить фото</label>
-                        <input type="file" id="expensePhoto" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)">
-                        <img id="photoPreview" class="photo-preview">
-                    </div>
+                    <div class="form-group"><label>Описание</label><input type="text" id="expenseDesc"></div>
+                    <div class="form-group"><label>Фото чека</label><label class="photo-btn" for="expensePhoto">📷 Прикрепить</label><input type="file" id="expensePhoto" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)"><img id="photoPreview" class="photo-preview"></div>
                     <button class="btn btn-danger" onclick="saveExpense()">💸 Записать</button>
                 </div>
                 <div class="card">
@@ -217,33 +181,20 @@
                     <div id="expenseList"></div>
                 </div>
             </div>
-            <!-- ASSETS -->
             <div id="assets" class="panel">
-                <div class="profit-box">
-                    <div class="label">📦 НА СКЛАДЕ</div>
-                    <div class="big-value assets" id="totalAssets">0 ₽</div>
-                </div>
+                <div class="profit-box"><div class="label">📦 НА СКЛАДЕ</div><div class="big-value assets" id="totalAssets">0 ₽</div></div>
                 <button class="btn btn-primary" onclick="openModal('addAsset')" style="margin-bottom:10px">➕ Добавить</button>
                 <button class="btn btn-secondary" onclick="openModal('useAsset')" style="margin-bottom:14px">📤 Списать</button>
                 <div id="assetsList"></div>
             </div>
-            <!-- ANALYTICS -->
             <div id="analytics" class="panel">
-                <div class="profit-box">
-                    <div class="label">💵 ЧИСТАЯ ПРИБЫЛЬ</div>
-                    <div class="big-value income" id="statFree">0 ₽</div>
-                </div>
-                <div class="date-filter">
-                    <div class="form-group"><label>С</label><input type="date" id="dateFrom"></div>
-                    <div class="form-group"><label>По</label><input type="date" id="dateTo"></div>
-                </div>
+                <div class="profit-box"><div class="label">💵 ЧИСТАЯ ПРИБЫЛЬ</div><div class="big-value income" id="statFree">0 ₽</div></div>
+                <div class="date-filter"><div class="form-group"><label>С</label><input type="date" id="dateFrom"></div><div class="form-group"><label>По</label><input type="date" id="dateTo"></div></div>
                 <div class="summary-grid">
                     <div class="summary-card"><div class="label">💰 Доходы</div><div class="value income" id="statIncome">0 ₽</div></div>
                     <div class="summary-card"><div class="label">💸 Расходы</div><div class="value expense" id="statExpense">0 ₽</div></div>
                 </div>
                 <div class="card"><div class="card-title">📁 По категориям</div><div id="categoryStats"></div></div>
-                <div class="btn-row"><button class="btn btn-secondary" onclick="exportBackup()">💾 Бэкап</button><button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📤 Загрузить</button></div>
-                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(this)">
             </div>
         </div>
     </div>
@@ -257,118 +208,83 @@
     </nav>
 </div>
 <div class="toast" id="toast"></div>
-<!-- MODALS -->
 <div class="modal" id="modalNewProject"><div class="modal-content">
     <div class="modal-header"><div class="modal-title">➕ Новый проект</div><button class="modal-close" onclick="closeModal('newProject')">✕</button></div>
     <div class="form-group"><label>Кто создаёт</label><input type="text" id="projectAuthor" placeholder="Имя"></div>
-    <div class="form-group"><label>Название</label><input type="text" id="projectName" placeholder="Кухня Иванов"></div>
-    <div class="form-row"><div class="form-group"><label>Клиент</label><input type="text" id="projectClient" placeholder="Иванов"></div><div class="form-group"><label>Телефон</label><input type="tel" id="projectPhone" placeholder="+7..."></div></div>
-    <div class="form-group"><label>Сумма (₽)</label><input type="number" id="projectSum" placeholder="500000" inputmode="decimal"></div>
+    <div class="form-group"><label>Название</label><input type="text" id="projectName"></div>
+    <div class="form-row"><div class="form-group"><label>Клиент</label><input type="text" id="projectClient"></div><div class="form-group"><label>Телефон</label><input type="tel" id="projectPhone"></div></div>
+    <div class="form-group"><label>Сумма (₽)</label><input type="number" id="projectSum" inputmode="decimal"></div>
     <div class="form-row"><div class="form-group"><label>Дата договора</label><input type="date" id="projectDateStart"></div><div class="form-group"><label>Дедлайн</label><input type="date" id="projectDeadline"></div></div>
     <button class="btn btn-primary" onclick="saveProject()">✅ Создать</button>
 </div></div>
-
 <div class="modal" id="modalViewProject"><div class="modal-content">
-    <div class="modal-header"><div class="modal-title" id="viewProjectTitle">Проект</div><button class="modal-close" onclick="closeModal('viewProject')">✕</button></div>
+    <div class="modal-header"><div class="modal-title" id="viewProjectTitle"></div><button class="modal-close" onclick="closeModal('viewProject')">✕</button></div>
     <div id="viewProjectContent"></div>
 </div></div>
-
 <div class="modal" id="modalAddAsset"><div class="modal-content">
-    <div class="modal-header"><div class="modal-title">➕ Добавить материал</div><button class="modal-close" onclick="closeModal('addAsset')">✕</button></div>
+    <div class="modal-header"><div class="modal-title">➕ Материал</div><button class="modal-close" onclick="closeModal('addAsset')">✕</button></div>
     <div class="form-group"><label>Кто добавляет</label><input type="text" id="assetAuthor" placeholder="Имя"></div>
-    <div class="form-group"><label>Название</label><input type="text" id="newAssetName" placeholder="ЛДСП Белый 16мм"></div>
-    <div class="form-row">
-        <div class="form-group"><label>Количество</label><input type="number" id="newAssetQty" placeholder="10" inputmode="decimal"></div>
-        <div class="form-group"><label>Единица</label><select id="newAssetUnit"><option>шт</option><option>м²</option><option>м.п.</option><option>кг</option><option>л</option><option>уп</option></select></div>
-    </div>
-    <div class="form-group"><label>Общая стоимость (₽)</label><input type="number" id="newAssetCost" placeholder="50000" inputmode="decimal"></div>
+    <div class="form-group"><label>Название</label><input type="text" id="newAssetName"></div>
+    <div class="form-row"><div class="form-group"><label>Кол-во</label><input type="number" id="newAssetQty" inputmode="decimal"></div><div class="form-group"><label>Ед.</label><select id="newAssetUnit"><option>шт</option><option>м²</option><option>м.п.</option><option>кг</option><option>л</option><option>уп</option></select></div></div>
+    <div class="form-group"><label>Стоимость (₽)</label><input type="number" id="newAssetCost" inputmode="decimal"></div>
     <button class="btn btn-primary" onclick="addAsset()">✅ Добавить</button>
 </div></div>
-
 <div class="modal" id="modalUseAsset"><div class="modal-content">
     <div class="modal-header"><div class="modal-title">📤 Списать</div><button class="modal-close" onclick="closeModal('useAsset')">✕</button></div>
     <div class="form-group"><label>Кто списывает</label><input type="text" id="useAssetAuthor" placeholder="Имя"></div>
     <div class="form-group"><label>Материал</label><select id="useAssetSelect"></select></div>
-    <div class="form-group"><label>Количество</label><input type="number" id="useAssetQty" placeholder="1" inputmode="decimal"></div>
+    <div class="form-group"><label>Кол-во</label><input type="number" id="useAssetQty" inputmode="decimal"></div>
     <div class="form-group"><label>На проект</label><select id="useAssetProject"></select></div>
     <button class="btn btn-primary" onclick="useAsset()">📤 Списать</button>
 </div></div>
-
 <div class="modal" id="modalSettings"><div class="modal-content">
     <div class="modal-header"><div class="modal-title">⚙️ Настройки</div><button class="modal-close" onclick="closeModal('settings')">✕</button></div>
-    <div class="card"><div class="card-title">🔄 Синхронизация</div><p style="font-size:11px;color:var(--text2);margin-bottom:10px">Авто-обновление каждые 30 сек</p><button class="btn btn-primary" onclick="syncNow()">🔄 Синхронизировать</button></div>
-    <div class="card"><div class="card-title">💾 Данные</div><div class="btn-row"><button class="btn btn-secondary" onclick="exportBackup()">💾 Бэкап</button><button class="btn btn-secondary" onclick="document.getElementById('importFile2').click()">📤 Загрузить</button></div><input type="file" id="importFile2" accept=".json" style="display:none" onchange="importBackup(this)"></div>
+    <div class="card"><div class="card-title">🔄 Синхронизация</div><p style="font-size:11px;color:var(--text2);margin-bottom:10px">Авто каждые 10 сек</p><button class="btn btn-primary" onclick="manualSync()">🔄 Синхронизировать</button></div>
+    <div class="card"><div class="card-title">💾 Бэкап</div><div class="btn-row"><button class="btn btn-secondary" onclick="exportBackup()">💾 Скачать</button><button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📤 Загрузить</button></div><input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(this)"></div>
 </div></div>
-
-<div class="modal" id="modalPhoto" onclick="closeModal('photo')">
-    <img id="modalPhotoImg" style="max-width:95%;max-height:90%;border-radius:12px">
-</div>
-
+<div class="modal" id="modalPhoto" onclick="closeModal('photo')"><img id="modalPhotoImg" style="max-width:95%;max-height:90%;border-radius:12px"></div>
 <script>
-const SYNC_URL='https://script.google.com/macros/s/AKfycbwlmez3kvl2aq6oiDCbMRjBuwlyEVjkx0FNexmnU40A81JsMeI9fsmAResAoktYhr_0/exec';
-let data={projects:[],income:[],expenses:[],assets:[]};
-let projFilter='active', incomeFilter='active', expenseFilter='active';
-let isSyncing=false, currentPhoto=null;
+const API='https://script.google.com/macros/s/AKfycbwlmez3kvl2aq6oiDCbMRjBuwlyEVjkx0FNexmnU40A81JsMeI9fsmAResAoktYhr_0/exec';
+let D={projects:[],income:[],expenses:[],assets:[]};
+let projF='active',incF='active',expF='active',syncing=false,photo=null;
 
-// ========== INIT ==========
-async function init(){
-    loadLocal();
-    setDefaultDates();
-    updateAll();
-    await syncNow();
-    setInterval(()=>{if(!isSyncing)loadFromCloud()},30000);
-}
+// ============ МЕРЖ ПО ID + TIMESTAMP ============
+// Правила:
+// 1. Все уникальные ID сохраняются (ничего не теряется)
+// 2. Если ID совпадает — берём версию с более поздним ts
+// 3. _archived=true ВСЕГДА побеждает (даже если ts старше)
 
-function loadLocal(){
-    try{
-        const s=localStorage.getItem('idealMebelV13');
-        if(s){const d=JSON.parse(s);data.projects=d.projects||[];data.income=d.income||[];data.expenses=d.expenses||[];data.assets=d.assets||[]}
-    }catch(e){console.error('loadLocal error',e)}
-}
-
-function saveLocal(){
-    try{localStorage.setItem('idealMebelV13',JSON.stringify(data))}catch(e){console.error('saveLocal error',e)}
-}
-
-// ========== SYNC - КЛЮЧЕВАЯ ЛОГИКА ==========
-// Правило: при мерже ВСЕГДА побеждает версия с более поздним updatedAt
-// Если запись архивирована (_archived=true) - это ВСЕГДА приоритет
-
-function mergeArrays(local, cloud){
+function merge(local, cloud){
     const map = new Map();
     
-    // Сначала добавляем все из облака
-    for(const item of cloud){
-        if(item && item.id) map.set(item.id, {...item});
+    // Добавляем все из облака
+    for(const item of (cloud||[])){
+        if(item && item.id) map.set(item.id, item);
     }
     
-    // Потом проверяем локальные
-    for(const item of local){
+    // Обрабатываем локальные
+    for(const item of (local||[])){
         if(!item || !item.id) continue;
         
-        const cloudItem = map.get(item.id);
+        const existing = map.get(item.id);
         
-        if(!cloudItem){
-            // Нет в облаке - добавляем локальную
-            map.set(item.id, {...item});
+        if(!existing){
+            // Новая запись — добавляем
+            map.set(item.id, item);
         } else {
-            // Есть в облаке - сравниваем
-            // ПРАВИЛО 1: Если локальная архивирована - она побеждает
-            if(item._archived && !cloudItem._archived){
-                map.set(item.id, {...item});
-            }
-            // ПРАВИЛО 2: Если облачная архивирована - она побеждает
-            else if(cloudItem._archived && !item._archived){
-                map.set(item.id, {...cloudItem});
-            }
-            // ПРАВИЛО 3: Сравниваем по updatedAt
-            else {
-                const localTime = item.updatedAt || item.createdAt || '0';
-                const cloudTime = cloudItem.updatedAt || cloudItem.createdAt || '0';
-                if(localTime > cloudTime){
-                    map.set(item.id, {...item});
-                } else {
-                    map.set(item.id, {...cloudItem});
+            // Запись есть — решаем какую оставить
+            
+            // Правило: архивированная ВСЕГДА побеждает
+            if(item._archived && !existing._archived){
+                map.set(item.id, item);
+            } else if(existing._archived && !item._archived){
+                // Облачная архивирована — оставляем её
+            } else {
+                // Обе архивированы или обе нет — сравниваем по ts
+                const localTs = item.ts || item.date || '0';
+                const cloudTs = existing.ts || existing.date || '0';
+                if(localTs > cloudTs){
+                    map.set(item.id, item);
                 }
             }
         }
@@ -377,531 +293,565 @@ function mergeArrays(local, cloud){
     return Array.from(map.values());
 }
 
-async function loadFromCloud(){
-    if(isSyncing) return;
-    isSyncing = true;
-    setSyncStatus('syncing','Загрузка...');
+// ============ СИНХРОНИЗАЦИЯ ============
+async function loadCloud(){
+    if(syncing) return;
+    syncing = true;
+    setSync('syncing','Загрузка...');
     
     try{
-        const r = await fetch(SYNC_URL+'?action=getData&t='+Date.now());
+        const r = await fetch(API+'?action=getData&t='+Date.now());
         const cloud = await r.json();
         
-        if(cloud && cloud.projects){
-            // Мержим с приоритетом архивированных
-            data.projects = mergeArrays(data.projects, cloud.projects || []);
-            data.income = mergeArrays(data.income, cloud.income || []);
-            data.expenses = mergeArrays(data.expenses, cloud.expenses || []);
-            data.assets = mergeArrays(data.assets, cloud.assets || []);
+        if(cloud && cloud.projects !== undefined){
+            // Мержим локальные с облачными
+            D.projects = merge(D.projects, cloud.projects);
+            D.income = merge(D.income, cloud.income);
+            D.expenses = merge(D.expenses, cloud.expenses);
+            D.assets = merge(D.assets, cloud.assets);
             
-            recalcProjectPaid();
-            convertNumbers();
+            fix();
             saveLocal();
-            updateAll();
-            setSyncStatus('online','Синхронизировано');
+            render();
+            setSync('online','Синхронизировано');
         } else {
-            setSyncStatus('offline','Ошибка загрузки');
+            setSync('offline','Ошибка загрузки');
         }
-    }catch(e){
-        console.error('loadFromCloud error:', e);
-        setSyncStatus('offline','Офлайн');
+    } catch(e){
+        console.error('Load error:', e);
+        setSync('offline','Офлайн');
     }
-    isSyncing = false;
+    syncing = false;
 }
 
-async function saveToCloud(){
-    if(isSyncing) return;
-    isSyncing = true;
-    setSyncStatus('syncing','Сохранение...');
+async function saveCloud(){
+    if(syncing) return false;
+    syncing = true;
+    setSync('syncing','Сохранение...');
     
     try{
-        // Сначала загружаем актуальные данные из облака
-        const r1 = await fetch(SYNC_URL+'?action=getData&t='+Date.now());
+        // 1. Загружаем актуальные данные из облака
+        const r1 = await fetch(API+'?action=getData&t='+Date.now());
         const cloud = await r1.json();
         
-        if(cloud && cloud.projects){
-            // Мержим - локальные изменения имеют приоритет если updatedAt новее
-            data.projects = mergeArrays(data.projects, cloud.projects || []);
-            data.income = mergeArrays(data.income, cloud.income || []);
-            data.expenses = mergeArrays(data.expenses, cloud.expenses || []);
-            data.assets = mergeArrays(data.assets, cloud.assets || []);
+        if(cloud && cloud.projects !== undefined){
+            // 2. Мержим — ни одна запись не потеряется
+            D.projects = merge(D.projects, cloud.projects);
+            D.income = merge(D.income, cloud.income);
+            D.expenses = merge(D.expenses, cloud.expenses);
+            D.assets = merge(D.assets, cloud.assets);
         }
         
-        // Отправляем объединённые данные
-        const r2 = await fetch(SYNC_URL+'?action=saveData',{
+        fix();
+        
+        // 3. Сохраняем объединённые данные
+        const r2 = await fetch(API+'?action=saveData',{
             method:'POST',
-            body:JSON.stringify(data)
+            body:JSON.stringify(D)
         });
-        const result = await r2.json();
+        const res = await r2.json();
         
-        if(result.success){
+        if(res.success){
             saveLocal();
-            setSyncStatus('online','Сохранено');
-        } else {
-            setSyncStatus('offline','Ошибка сохранения');
+            setSync('online','Сохранено');
+            syncing = false;
+            return true;
         }
-    }catch(e){
-        console.error('saveToCloud error:', e);
-        setSyncStatus('offline','Офлайн');
+    } catch(e){
+        console.error('Save error:', e);
     }
-    isSyncing = false;
+    
+    setSync('offline','Ошибка');
+    syncing = false;
+    return false;
 }
 
-async function syncNow(){
+async function manualSync(){
     toast('🔄');
-    await saveToCloud();
-    await loadFromCloud();
-    recalcProjectPaid();
-    updateAll();
+    await loadCloud();
+    render();
     toast('✅');
 }
 
-function recalcProjectPaid(){
-    data.projects.forEach(p=>{
-        p.paid = data.income
+function saveLocal(){
+    try{ localStorage.setItem('IM15', JSON.stringify(D)); } catch(e){}
+}
+
+function loadLocal(){
+    try{
+        const s = localStorage.getItem('IM15');
+        if(s) D = JSON.parse(s);
+    } catch(e){}
+}
+
+function fix(){
+    D.projects = D.projects || [];
+    D.income = D.income || [];
+    D.expenses = D.expenses || [];
+    D.assets = D.assets || [];
+    
+    D.projects.forEach(p=>{
+        p.sum = parseFloat(p.sum)||0;
+        p.stage = parseInt(p.stage)||0;
+    });
+    D.income.forEach(i=>{ i.amount = parseFloat(i.amount)||0; });
+    D.expenses.forEach(e=>{ e.amount = parseFloat(e.amount)||0; });
+    D.assets.forEach(a=>{
+        a.qty = parseFloat(a.qty)||0;
+        a.pricePerUnit = parseFloat(a.pricePerUnit)||0;
+        a.totalCost = parseFloat(a.totalCost)||0;
+    });
+    
+    // Пересчёт paid для проектов
+    D.projects.forEach(p=>{
+        p.paid = D.income
             .filter(i => i.projectId === p.id && !i._archived)
-            .reduce((s,i) => s + (parseFloat(i.amount)||0), 0);
+            .reduce((s,i) => s + i.amount, 0);
     });
 }
 
-function convertNumbers(){
-    data.projects.forEach(p=>{p.sum=parseFloat(p.sum)||0;p.paid=parseFloat(p.paid)||0;p.stage=parseInt(p.stage)||0});
-    data.income.forEach(i=>{i.amount=parseFloat(i.amount)||0});
-    data.expenses.forEach(e=>{e.amount=parseFloat(e.amount)||0});
-    data.assets.forEach(a=>{a.qty=parseFloat(a.qty)||0;a.pricePerUnit=parseFloat(a.pricePerUnit)||0;a.totalCost=parseFloat(a.totalCost)||0});
+function setSync(s,t){
+    document.getElementById('syncDot').className = 'sync-dot '+s;
+    document.getElementById('syncStatus').textContent = t;
 }
 
-function setSyncStatus(s,t){
-    document.getElementById('syncDot').className='sync-dot '+s;
-    document.getElementById('syncStatus').textContent=t;
+// ============ INIT ============
+async function init(){
+    loadLocal();
+    fix();
+    setDates();
+    render();
+    await loadCloud();
+    setInterval(loadCloud, 10000);
 }
 
-function setDefaultDates(){
-    const t=new Date();
-    document.getElementById('dateTo').value=t.toISOString().split('T')[0];
-    document.getElementById('projectDateStart').value=t.toISOString().split('T')[0];
-    const m=new Date();m.setMonth(m.getMonth()-1);
-    document.getElementById('dateFrom').value=m.toISOString().split('T')[0];
+function setDates(){
+    const t = new Date(), m = new Date();
+    m.setMonth(m.getMonth()-1);
+    document.getElementById('dateTo').value = t.toISOString().split('T')[0];
+    document.getElementById('dateFrom').value = m.toISOString().split('T')[0];
+    document.getElementById('projectDateStart').value = t.toISOString().split('T')[0];
 }
 
-// ========== UI ==========
+// ============ UI ============
 function showPanel(n){
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
     document.getElementById(n).classList.add('active');
     event.currentTarget.classList.add('active');
-    document.querySelector('.content').scrollTop=0;
-    updateAll();
 }
+function openModal(n){
+    document.getElementById('modal'+n[0].toUpperCase()+n.slice(1)).classList.add('active');
+    if(n==='useAsset') fillAssetModal();
+}
+function closeModal(n){
+    document.getElementById('modal'+n[0].toUpperCase()+n.slice(1)).classList.remove('active');
+}
+function toast(m){
+    const t=document.getElementById('toast');
+    t.textContent=m; t.style.display='block';
+    setTimeout(()=>t.style.display='none',1500);
+}
+function fmt(n){ return (Math.round(n)||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
+function now(){ return new Date().toISOString(); }
+function today(){ return now().split('T')[0]; }
+function fmtD(d){ if(!d)return'—'; const p=d.split('-'); return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:d; }
 
-function openModal(n){document.getElementById('modal'+n.charAt(0).toUpperCase()+n.slice(1)).classList.add('active');if(n==='useAsset')updateAssetModal()}
-function closeModal(n){document.getElementById('modal'+n.charAt(0).toUpperCase()+n.slice(1)).classList.remove('active')}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',1500)}
-function fmt(n){return(Math.round(n)||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'}
-function getDate(){return new Date().toISOString().split('T')[0]}
-function getNow(){return new Date().toISOString()}
-function fmtDate(d){if(!d)return'—';const p=d.split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:d}
-
-// ========== PHOTO - СИЛЬНОЕ СЖАТИЕ ==========
-function previewPhoto(input){
-    if(input.files&&input.files[0]){
-        const reader=new FileReader();
-        reader.onload=e=>{
-            const img=new Image();
-            img.onload=()=>{
-                const canvas=document.createElement('canvas');
-                // Сжимаем до 300px максимум для экономии места
-                let w=img.width, h=img.height;
-                const max=300;
-                if(w>max||h>max){
-                    if(w>h){h=h*max/w;w=max}
-                    else{w=w*max/h;h=max}
-                }
-                canvas.width=w;canvas.height=h;
-                canvas.getContext('2d').drawImage(img,0,0,w,h);
-                // Качество 0.4 для минимального размера
-                currentPhoto=canvas.toDataURL('image/jpeg',0.4);
-                document.getElementById('photoPreview').src=currentPhoto;
-                document.getElementById('photoPreview').style.display='block';
-            };
-            img.src=e.target.result;
+// ============ PHOTO ============
+function previewPhoto(inp){
+    if(!inp.files||!inp.files[0]) return;
+    const r = new FileReader();
+    r.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            const c = document.createElement('canvas');
+            let w=img.width, h=img.height;
+            if(w>200||h>200){ if(w>h){h=h*200/w;w=200}else{w=w*200/h;h=200} }
+            c.width=w; c.height=h;
+            c.getContext('2d').drawImage(img,0,0,w,h);
+            photo = c.toDataURL('image/jpeg',0.25);
+            document.getElementById('photoPreview').src = photo;
+            document.getElementById('photoPreview').style.display = 'block';
         };
-        reader.readAsDataURL(input.files[0]);
+        img.src = e.target.result;
+    };
+    r.readAsDataURL(inp.files[0]);
+}
+function viewPhoto(id){
+    const e = D.expenses.find(x=>x.id===id);
+    if(e&&e.photo){
+        document.getElementById('modalPhotoImg').src = e.photo;
+        openModal('photo');
     }
 }
 
-function viewPhoto(id){
-    const e=data.expenses.find(x=>x.id===id);
-    if(e&&e.photo){document.getElementById('modalPhotoImg').src=e.photo;openModal('photo')}
-}
-
-// ========== PROJECTS ==========
-function saveProject(){
-    const author=document.getElementById('projectAuthor').value.trim();
-    const n=document.getElementById('projectName').value.trim();
-    const cl=document.getElementById('projectClient').value.trim();
-    const ph=document.getElementById('projectPhone').value.trim();
-    const s=parseFloat(document.getElementById('projectSum').value)||0;
-    const ds=document.getElementById('projectDateStart').value;
-    const dl=document.getElementById('projectDeadline').value;
-    if(!n||!s)return toast('❌ Заполни название и сумму');
+// ============ PROJECTS ============
+async function saveProject(){
+    const name = document.getElementById('projectName').value.trim();
+    const sum = parseFloat(document.getElementById('projectSum').value)||0;
+    if(!name||!sum) return toast('❌');
     
-    const now = getNow();
-    const id='П-'+Date.now();
-    data.projects.push({id,name:n,client:cl,phone:ph,sum:s,paid:0,status:'active',stage:0,dateStart:ds||getDate(),deadline:dl||'',author,createdAt:now,updatedAt:now});
+    D.projects.push({
+        id: 'П'+Date.now(),
+        name,
+        client: document.getElementById('projectClient').value.trim(),
+        phone: document.getElementById('projectPhone').value.trim(),
+        sum,
+        paid: 0,
+        status: 'active',
+        stage: 0,
+        dateStart: document.getElementById('projectDateStart').value || today(),
+        deadline: document.getElementById('projectDeadline').value || '',
+        author: document.getElementById('projectAuthor').value.trim(),
+        ts: now()
+    });
     
-    saveLocal();saveToCloud();updateAll();closeModal('newProject');toast('✅');
-    document.getElementById('projectName').value='';document.getElementById('projectClient').value='';document.getElementById('projectPhone').value='';document.getElementById('projectSum').value='';
+    if(await saveCloud()){
+        closeModal('newProject');
+        ['projectName','projectClient','projectPhone','projectSum'].forEach(id=>document.getElementById(id).value='');
+        render();
+        toast('✅');
+    }
 }
-
-function filterProj(s,b){projFilter=s;document.querySelectorAll('#projectsTabs .tab-btn').forEach(t=>t.classList.remove('active'));b.classList.add('active');renderProjects()}
-
-function changeProjStatus(id,s){
-    const p=data.projects.find(x=>x.id===id);
-    if(p){p.status=s;p.updatedAt=getNow();saveLocal();saveToCloud();renderProjects();toast('✅')}
-}
-
-function changeStage(id,s){
-    const p=data.projects.find(x=>x.id===id);
-    if(p){p.stage=s;p.updatedAt=getNow();saveLocal();saveToCloud();viewProject(id)}
-}
-
+function filterProj(f,b){ projF=f; document.querySelectorAll('#projectsTabs .tab-btn').forEach(t=>t.classList.remove('active')); b.classList.add('active'); renderProjects(); }
+async function setProjStatus(id,s){ const p=D.projects.find(x=>x.id===id); if(p){p.status=s;p.ts=now(); if(await saveCloud()){render();toast('✅');}} }
+async function setStage(id,s){ const p=D.projects.find(x=>x.id===id); if(p){p.stage=s;p.ts=now(); if(await saveCloud()){viewProject(id);}} }
 function viewProject(id){
-    const p=data.projects.find(x=>x.id===id);if(!p)return;
-    const pI=data.income.filter(i=>i.projectId===id&&!i._archived);
-    const pE=data.expenses.filter(e=>e.projectId===id&&!e._archived);
+    const p=D.projects.find(x=>x.id===id); if(!p)return;
+    const pI=D.income.filter(i=>i.projectId===id&&!i._archived);
+    const pE=D.expenses.filter(e=>e.projectId===id&&!e._archived);
     const tI=pI.reduce((s,i)=>s+i.amount,0);
     const tE=pE.reduce((s,e)=>s+e.amount,0);
-    const pr=tI-tE;
     const st=['Замер','Дизайн','Производство','Доставка','Монтаж','Готово'];
-    const stH=st.map((s,i)=>`<div class="stage ${i<p.stage?'done':i===p.stage?'active':''}" onclick="changeStage('${id}',${i})">${s}</div>`).join('');
     const ph=(p.phone||'').replace(/\D/g,'');
     document.getElementById('viewProjectTitle').textContent=p.name;
     document.getElementById('viewProjectContent').innerHTML=`
-        <div class="list-item">
-            <div>👤 ${p.client||'—'} • 📞 ${p.phone||'—'}</div>
-            <div>📅 ${fmtDate(p.dateStart)} → ${fmtDate(p.deadline)}</div>
-            ${p.author?`<div class="author">Создал: ${p.author}</div>`:''}
-        </div>
-        ${ph?`<div class="contact-btns"><a href="https://wa.me/${ph}" class="contact-btn whatsapp">💬 WhatsApp</a><a href="tel:${ph}" class="contact-btn phone">📞 Позвонить</a></div>`:''}
-        <div class="card" style="margin-top:12px"><div class="stages">${stH}</div></div>
+        <div class="list-item"><div>👤 ${p.client||'—'} • 📞 ${p.phone||'—'}</div><div>📅 ${fmtD(p.dateStart)} → ${fmtD(p.deadline)}</div>${p.author?`<div class="author">Создал: ${p.author}</div>`:''}</div>
+        ${ph?`<div class="contact-btns"><a href="https://wa.me/${ph}" class="contact-btn whatsapp">💬</a><a href="tel:${ph}" class="contact-btn phone">📞</a></div>`:''}
+        <div class="card" style="margin-top:12px"><div class="stages">${st.map((s,i)=>`<div class="stage ${i<p.stage?'done':i===p.stage?'active':''}" onclick="setStage('${id}',${i})">${s}</div>`).join('')}</div></div>
         <div class="summary-grid" style="margin-top:12px">
             <div class="summary-card"><div class="label">Договор</div><div class="value">${fmt(p.sum)}</div></div>
             <div class="summary-card"><div class="label">Оплачено</div><div class="value income">${fmt(p.paid)}</div></div>
             <div class="summary-card"><div class="label">Расходы</div><div class="value expense">${fmt(tE)}</div></div>
-            <div class="summary-card"><div class="label">Прибыль</div><div class="value ${pr>=0?'income':'expense'}">${fmt(pr)}</div></div>
+            <div class="summary-card"><div class="label">Прибыль</div><div class="value ${tI-tE>=0?'income':'expense'}">${fmt(tI-tE)}</div></div>
         </div>
-        <div class="progress-bar"><div class="fill progress-green" style="width:${Math.min(100,(p.paid/p.sum)*100)}%"></div></div>`;
+        <div class="progress-bar"><div class="fill" style="width:${Math.min(100,p.sum?p.paid/p.sum*100:0)}%;background:var(--green)"></div></div>`;
     openModal('viewProject');
 }
 
-// ========== INCOME ==========
-function saveIncome(){
-    const author=document.getElementById('incomeAuthor').value.trim();
-    const pId=document.getElementById('incomeProject').value;
-    const am=parseFloat(document.getElementById('incomeAmount').value)||0;
-    const tp=document.getElementById('incomeType').value;
-    const mt=document.getElementById('incomeMethod').value;
-    const nt=document.getElementById('incomeNote').value;
-    if(!pId||!am)return toast('❌ Выбери проект и сумму');
+// ============ INCOME ============
+async function saveIncome(){
+    const projectId = document.getElementById('incomeProject').value;
+    const amount = parseFloat(document.getElementById('incomeAmount').value)||0;
+    if(!projectId||!amount) return toast('❌');
     
-    const now = getNow();
-    const id='Д-'+Date.now();
-    data.income.push({id,projectId:pId,amount:am,type:tp,method:mt,note:nt,date:getDate(),author,createdAt:now,updatedAt:now});
+    D.income.push({
+        id: 'Д'+Date.now(),
+        projectId,
+        amount,
+        type: document.getElementById('incomeType').value,
+        method: document.getElementById('incomeMethod').value,
+        note: document.getElementById('incomeNote').value,
+        date: today(),
+        author: document.getElementById('incomeAuthor').value.trim(),
+        ts: now()
+    });
     
-    const pr=data.projects.find(p=>p.id===pId);
-    if(pr){pr.paid+=am;pr.updatedAt=now}
-    
-    saveLocal();saveToCloud();updateAll();toast('✅');
-    document.getElementById('incomeAmount').value='';document.getElementById('incomeNote').value='';
+    if(await saveCloud()){
+        document.getElementById('incomeAmount').value='';
+        document.getElementById('incomeNote').value='';
+        render();
+        toast('✅');
+    }
 }
-
-function setIncomeFilter(f,b){incomeFilter=f;document.querySelectorAll('#incomeTabs .tab-btn').forEach(t=>t.classList.remove('active'));b.classList.add('active');renderIncome()}
-
-function archiveIncome(id){
-    const name = prompt('Кто архивирует?');
-    if(!name) return;
-    
-    const i=data.income.find(x=>x.id===id);
+function setIncomeFilter(f,b){ incF=f; document.querySelectorAll('#incomeTabs .tab-btn').forEach(t=>t.classList.remove('active')); b.classList.add('active'); renderIncome(); }
+async function archiveIncome(id){
+    const who = prompt('Кто архивирует?'); if(!who) return;
+    const i = D.income.find(x=>x.id===id);
     if(i){
-        const now = getNow();
-        i._archived=true;
-        i.archivedBy=name;
-        i.archivedAt=now;
-        i.updatedAt=now; // ВАЖНО: обновляем время для правильного мержа
-        
-        const pr=data.projects.find(p=>p.id===i.projectId);
-        if(pr){pr.paid-=i.amount;pr.updatedAt=now}
-        
-        saveLocal();saveToCloud();updateAll();toast('📦 В архив');
+        i._archived = true;
+        i._archivedBy = who;
+        i._archivedAt = now();
+        i.ts = now();
+        if(await saveCloud()){ render(); toast('📦'); }
     }
 }
-
-function restoreIncome(id){
-    const i=data.income.find(x=>x.id===id);
+async function restoreIncome(id){
+    const i = D.income.find(x=>x.id===id);
     if(i){
-        const now = getNow();
-        i._archived=false;
-        i.updatedAt=now;
-        
-        const pr=data.projects.find(p=>p.id===i.projectId);
-        if(pr){pr.paid+=i.amount;pr.updatedAt=now}
-        
-        saveLocal();saveToCloud();updateAll();toast('♻️ Восстановлено');
+        i._archived = false;
+        i.ts = now();
+        if(await saveCloud()){ render(); toast('♻️'); }
     }
 }
 
-// ========== EXPENSE ==========
-function saveExpense(){
-    const author=document.getElementById('expenseAuthor').value.trim();
-    const pId=document.getElementById('expenseProject').value;
-    const cat=document.getElementById('expenseCategory').value;
-    const am=parseFloat(document.getElementById('expenseAmount').value)||0;
-    const mt=document.getElementById('expenseMethod').value;
-    const ds=document.getElementById('expenseDesc').value;
-    if(!am)return toast('❌ Введи сумму');
+// ============ EXPENSE ============
+async function saveExpense(){
+    const amount = parseFloat(document.getElementById('expenseAmount').value)||0;
+    if(!amount) return toast('❌');
     
-    const now = getNow();
-    const id='Р-'+Date.now();
-    data.expenses.push({id,projectId:pId,category:cat,amount:am,method:mt,desc:ds,photo:currentPhoto,date:getDate(),author,createdAt:now,updatedAt:now});
+    D.expenses.push({
+        id: 'Р'+Date.now(),
+        projectId: document.getElementById('expenseProject').value,
+        category: document.getElementById('expenseCategory').value,
+        amount,
+        method: document.getElementById('expenseMethod').value,
+        desc: document.getElementById('expenseDesc').value,
+        photo,
+        date: today(),
+        author: document.getElementById('expenseAuthor').value.trim(),
+        ts: now()
+    });
     
-    saveLocal();saveToCloud();updateAll();toast('✅');
-    document.getElementById('expenseAmount').value='';document.getElementById('expenseDesc').value='';
-    document.getElementById('expensePhoto').value='';document.getElementById('photoPreview').style.display='none';currentPhoto=null;
+    if(await saveCloud()){
+        document.getElementById('expenseAmount').value='';
+        document.getElementById('expenseDesc').value='';
+        document.getElementById('expensePhoto').value='';
+        document.getElementById('photoPreview').style.display='none';
+        photo = null;
+        render();
+        toast('✅');
+    }
 }
-
-function setExpenseFilter(f,b){expenseFilter=f;document.querySelectorAll('#expenseTabs .tab-btn').forEach(t=>t.classList.remove('active'));b.classList.add('active');renderExpenses()}
-
-function archiveExpense(id){
-    const name = prompt('Кто архивирует?');
-    if(!name) return;
-    
-    const e=data.expenses.find(x=>x.id===id);
+function setExpenseFilter(f,b){ expF=f; document.querySelectorAll('#expenseTabs .tab-btn').forEach(t=>t.classList.remove('active')); b.classList.add('active'); renderExpenses(); }
+async function archiveExpense(id){
+    const who = prompt('Кто архивирует?'); if(!who) return;
+    const e = D.expenses.find(x=>x.id===id);
     if(e){
-        const now = getNow();
-        e._archived=true;
-        e.archivedBy=name;
-        e.archivedAt=now;
-        e.updatedAt=now; // ВАЖНО: обновляем время для правильного мержа
-        
-        saveLocal();saveToCloud();updateAll();toast('📦 В архив');
+        e._archived = true;
+        e._archivedBy = who;
+        e._archivedAt = now();
+        e.ts = now();
+        if(await saveCloud()){ render(); toast('📦'); }
     }
 }
-
-function restoreExpense(id){
-    const e=data.expenses.find(x=>x.id===id);
+async function restoreExpense(id){
+    const e = D.expenses.find(x=>x.id===id);
     if(e){
-        const now = getNow();
-        e._archived=false;
-        e.updatedAt=now;
-        
-        saveLocal();saveToCloud();updateAll();toast('♻️ Восстановлено');
+        e._archived = false;
+        e.ts = now();
+        if(await saveCloud()){ render(); toast('♻️'); }
     }
 }
 
-// ========== ASSETS ==========
-function addAsset(){
-    const author=document.getElementById('assetAuthor').value.trim();
-    const n=document.getElementById('newAssetName').value.trim();
-    const q=parseFloat(document.getElementById('newAssetQty').value)||0;
-    const u=document.getElementById('newAssetUnit').value;
-    const c=parseFloat(document.getElementById('newAssetCost').value)||0;
-    if(!n||!q||!c)return toast('❌ Заполни все поля');
+// ============ ASSETS ============
+async function addAsset(){
+    const name = document.getElementById('newAssetName').value.trim();
+    const qty = parseFloat(document.getElementById('newAssetQty').value)||0;
+    const cost = parseFloat(document.getElementById('newAssetCost').value)||0;
+    if(!name||!qty||!cost) return toast('❌');
     
-    const now = getNow();
-    const pp=c/q;
-    const ex=data.assets.find(a=>a.name.toLowerCase()===n.toLowerCase()&&a.unit===u);
+    const unit = document.getElementById('newAssetUnit').value;
+    const ex = D.assets.find(a=>a.name.toLowerCase()===name.toLowerCase()&&a.unit===unit);
     
     if(ex){
-        ex.qty+=q;ex.totalCost+=c;ex.pricePerUnit=ex.totalCost/ex.qty;ex.updatedAt=now;
+        ex.qty += qty;
+        ex.totalCost += cost;
+        ex.pricePerUnit = ex.totalCost / ex.qty;
+        ex.ts = now();
     } else {
-        const id='А-'+Date.now();
-        data.assets.push({id,name:n,qty:q,unit:u,pricePerUnit:pp,totalCost:c,author,createdAt:now,updatedAt:now});
+        D.assets.push({
+            id: 'А'+Date.now(),
+            name,
+            qty,
+            unit,
+            pricePerUnit: cost/qty,
+            totalCost: cost,
+            author: document.getElementById('assetAuthor').value.trim(),
+            ts: now()
+        });
     }
     
-    saveLocal();saveToCloud();updateAll();closeModal('addAsset');toast('✅');
-    document.getElementById('newAssetName').value='';document.getElementById('newAssetQty').value='';document.getElementById('newAssetCost').value='';
+    if(await saveCloud()){
+        closeModal('addAsset');
+        ['newAssetName','newAssetQty','newAssetCost'].forEach(id=>document.getElementById(id).value='');
+        render();
+        toast('✅');
+    }
+}
+function fillAssetModal(){
+    document.getElementById('useAssetSelect').innerHTML = D.assets.filter(a=>a.qty>0).map(a=>`<option value="${a.id}">${a.name} (${a.qty} ${a.unit})</option>`).join('')||'<option>Нет</option>';
+    document.getElementById('useAssetProject').innerHTML = D.projects.filter(p=>p.status==='active').map(p=>`<option value="${p.id}">${p.name}</option>`).join('')||'<option>Нет</option>';
+}
+async function useAsset(){
+    const aId = document.getElementById('useAssetSelect').value;
+    const qty = parseFloat(document.getElementById('useAssetQty').value)||0;
+    const a = D.assets.find(x=>x.id===aId);
+    if(!a||qty<=0||qty>a.qty) return toast('❌');
+    
+    const cost = a.pricePerUnit * qty;
+    a.qty -= qty;
+    a.totalCost = a.qty * a.pricePerUnit;
+    a.ts = now();
+    
+    D.expenses.push({
+        id: 'Р'+Date.now(),
+        projectId: document.getElementById('useAssetProject').value,
+        category: 'Со склада',
+        amount: cost,
+        desc: `${a.name} x${qty} ${a.unit}`,
+        date: today(),
+        author: document.getElementById('useAssetAuthor').value.trim(),
+        ts: now()
+    });
+    
+    if(await saveCloud()){
+        closeModal('useAsset');
+        render();
+        toast('✅');
+    }
 }
 
-function updateAssetModal(){
-    const o=data.assets.filter(a=>a.qty>0).map(a=>`<option value="${a.id}">${a.name} (${a.qty} ${a.unit})</option>`).join('');
-    document.getElementById('useAssetSelect').innerHTML=o||'<option>Нет</option>';
-    const po=data.projects.filter(p=>p.status==='active').map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-    document.getElementById('useAssetProject').innerHTML=po||'<option>Нет</option>';
+// ============ RENDER ============
+function render(){ renderSelects(); renderHome(); renderProjects(); renderIncome(); renderExpenses(); renderAssets(); renderAnalytics(); }
+
+function renderSelects(){
+    const active = D.projects.filter(p=>p.status==='active');
+    const opts = active.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+    document.getElementById('incomeProject').innerHTML = opts || '<option value="">Нет проектов</option>';
+    document.getElementById('expenseProject').innerHTML = (opts||'') + '<option value="Общие">Общие</option>';
 }
 
-function useAsset(){
-    const author=document.getElementById('useAssetAuthor').value.trim();
-    const aId=document.getElementById('useAssetSelect').value;
-    const q=parseFloat(document.getElementById('useAssetQty').value)||0;
-    const pId=document.getElementById('useAssetProject').value;
-    const a=data.assets.find(x=>x.id===aId);
-    if(!a||q<=0||q>a.qty)return toast('❌ Проверь количество');
+function renderHome(){
+    const aI = D.income.filter(i=>!i._archived);
+    const aE = D.expenses.filter(e=>!e._archived);
+    const tI = aI.reduce((s,i)=>s+i.amount,0);
+    const tE = aE.reduce((s,e)=>s+e.amount,0);
+    const tA = D.assets.reduce((s,a)=>s+(a.totalCost||0),0);
     
-    const now = getNow();
-    a.qty-=q;
-    const uc=a.pricePerUnit*q;
-    a.totalCost=a.qty*a.pricePerUnit;
-    a.updatedAt=now;
+    document.getElementById('homeIncome').textContent = fmt(tI);
+    document.getElementById('homeExpense').textContent = fmt(tE);
+    document.getElementById('homeProfit').textContent = fmt(tI-tE);
+    document.getElementById('homeAssets').textContent = fmt(tA);
+    document.getElementById('homeFree').textContent = fmt(tI-tE-tA);
     
-    const id='Р-'+Date.now();
-    data.expenses.push({id,projectId:pId,category:'Со склада',amount:uc,desc:`${a.name} x${q} ${a.unit}`,date:getDate(),author,createdAt:now,updatedAt:now});
+    const all = [...aI.map(i=>({...i,_t:'i'})), ...aE.map(e=>({...e,_t:'e'}))]
+        .sort((a,b)=>(b.ts||b.date||'').localeCompare(a.ts||a.date||''))
+        .slice(0,5);
     
-    saveLocal();saveToCloud();updateAll();closeModal('useAsset');toast('✅');
-}
-
-// ========== RENDER ==========
-function updateAll(){updateSelects();updateHome();updateAlerts();renderProjects();renderIncome();renderExpenses();renderAssets();updateAnalytics()}
-
-function updateSelects(){
-    const a=data.projects.filter(p=>p.status==='active');
-    const o=a.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-    document.getElementById('incomeProject').innerHTML=o||'<option value="">Нет проектов</option>';
-    document.getElementById('expenseProject').innerHTML=(o||'')+'<option value="Общие">Общие</option>';
-}
-
-function updateAlerts(){
-    const t=getDate();
-    const ov=data.projects.filter(p=>p.status==='active'&&p.deadline&&p.deadline<t);
-    document.getElementById('alerts').innerHTML=ov.length?`<div class="alert"><span>⚠️ ${ov.length} просрочено!</span></div>`:'';
-}
-
-function updateHome(){
-    const activeI=data.income.filter(i=>!i._archived);
-    const activeE=data.expenses.filter(e=>!e._archived);
-    const tI=activeI.reduce((s,i)=>s+i.amount,0);
-    const tE=activeE.reduce((s,e)=>s+e.amount,0);
-    const tA=data.assets.reduce((s,a)=>s+(a.totalCost||0),0);
-    const profit=tI-tE;
-    
-    document.getElementById('homeIncome').textContent=fmt(tI);
-    document.getElementById('homeExpense').textContent=fmt(tE);
-    document.getElementById('homeProfit').textContent=fmt(profit);
-    document.getElementById('homeAssets').textContent=fmt(tA);
-    document.getElementById('homeFree').textContent=fmt(profit-tA);
-    
-    const all=[...activeI.map(i=>({...i,_t:'i'})),...activeE.map(e=>({...e,_t:'e'}))]
-        .sort((a,b)=>(b.updatedAt||b.createdAt||b.date||'').localeCompare(a.updatedAt||a.createdAt||a.date||'')).slice(0,5);
-    
-    document.getElementById('recentOps').innerHTML=all.length?all.map(o=>{
+    document.getElementById('recentOps').innerHTML = all.length ? all.map(o=>{
         if(o._t==='i'){
-            const pr=data.projects.find(p=>p.id===o.projectId);
-            return`<div class="list-item"><div class="row"><div><div class="title">${pr?pr.name:o.projectId}</div><div class="subtitle">${fmtDate(o.date)} • ${o.type}</div>${o.author?`<div class="author">👤 ${o.author}</div>`:''}</div><div class="amount income">+${fmt(o.amount)}</div></div></div>`;
-        }else{
-            return`<div class="list-item"><div class="row"><div><div class="title">${o.category}</div><div class="subtitle">${fmtDate(o.date)} • ${o.desc||''}</div>${o.author?`<div class="author">👤 ${o.author}</div>`:''}</div><div class="amount expense">-${fmt(o.amount)}</div></div></div>`;
+            const p = D.projects.find(x=>x.id===o.projectId);
+            return `<div class="list-item"><div class="row"><div><div class="title">${p?p.name:o.projectId}</div><div class="subtitle">${fmtD(o.date)} • ${o.type}</div>${o.author?`<div class="author">👤 ${o.author}</div>`:''}</div><div class="amount income">+${fmt(o.amount)}</div></div></div>`;
         }
-    }).join(''):'<div class="empty"><span>📭</span>Пусто</div>';
+        return `<div class="list-item"><div class="row"><div><div class="title">${o.category}</div><div class="subtitle">${fmtD(o.date)} • ${o.desc||''}</div>${o.author?`<div class="author">👤 ${o.author}</div>`:''}</div><div class="amount expense">-${fmt(o.amount)}</div></div></div>`;
+    }).join('') : '<div class="empty"><span>📭</span>Пусто</div>';
 }
 
 function renderProjects(){
-    let l=data.projects.filter(p=>p.status===projFilter);
-    const st=['Замер','Дизайн','Произв.','Доставка','Монтаж','Готово'];
-    const bd={active:'<span class="badge badge-active">В работе</span>',done:'<span class="badge badge-done">Завершён</span>',archive:'<span class="badge badge-archive">Архив</span>'};
+    const list = D.projects.filter(p=>p.status===projF);
+    const st = ['Замер','Дизайн','Произв.','Доставка','Монтаж','Готово'];
+    const bd = {active:'<span class="badge badge-active">В работе</span>',done:'<span class="badge badge-done">Завершён</span>',archive:'<span class="badge badge-archive">Архив</span>'};
     
-    document.getElementById('projectsList').innerHTML=l.length?l.map(p=>{
-        const pc=p.sum?Math.round((p.paid/p.sum)*100):0;
-        const pE=data.expenses.filter(e=>e.projectId===p.id&&!e._archived).reduce((s,e)=>s+e.amount,0);
-        const mr=p.paid>0?Math.round(((p.paid-pE)/p.paid)*100):0;
-        return`<div class="list-item">
+    document.getElementById('projectsList').innerHTML = list.length ? list.map(p=>{
+        const pc = p.sum ? Math.round(p.paid/p.sum*100) : 0;
+        const pE = D.expenses.filter(e=>e.projectId===p.id&&!e._archived).reduce((s,e)=>s+e.amount,0);
+        const mr = p.paid>0 ? Math.round((p.paid-pE)/p.paid*100) : 0;
+        return `<div class="list-item">
             <div class="row"><div class="title">${p.name}</div><div class="amount">${fmt(p.sum)}</div></div>
-            <div class="subtitle">${p.client||'—'} • ${fmtDate(p.dateStart)}</div>
+            <div class="subtitle">${p.client||'—'} • ${fmtD(p.dateStart)}</div>
             ${p.author?`<div class="author">👤 ${p.author}</div>`:''}
             <div>${bd[p.status]||''}<span class="badge badge-margin">${mr}%</span></div>
             <div class="stages">${st.map((s,i)=>`<div class="stage ${i<(p.stage||0)?'done':i===(p.stage||0)?'active':''}">${s}</div>`).join('')}</div>
-            <div class="progress-bar"><div class="fill ${pc>=100?'progress-green':pc>=50?'progress-yellow':'progress-red'}" style="width:${pc}%"></div></div>
+            <div class="progress-bar"><div class="fill" style="width:${pc}%;background:${pc>=100?'var(--green)':pc>=50?'var(--yellow)':'var(--red)'}"></div></div>
             <div class="actions">
                 <button class="action-btn" onclick="viewProject('${p.id}')">👁</button>
-                ${p.status==='active'?`<button class="action-btn" onclick="changeProjStatus('${p.id}','done')">✅</button>`:''}
-                ${p.status==='done'?`<button class="action-btn" onclick="changeProjStatus('${p.id}','archive')">📦</button>`:''}
-                ${p.status==='archive'?`<button class="action-btn" onclick="changeProjStatus('${p.id}','active')">♻️</button>`:''}
+                ${p.status==='active'?`<button class="action-btn" onclick="setProjStatus('${p.id}','done')">✅</button>`:''}
+                ${p.status==='done'?`<button class="action-btn" onclick="setProjStatus('${p.id}','archive')">📦</button>`:''}
+                ${p.status==='archive'?`<button class="action-btn" onclick="setProjStatus('${p.id}','active')">♻️</button>`:''}
             </div>
         </div>`;
-    }).join(''):'<div class="empty"><span>📋</span>Нет проектов</div>';
+    }).join('') : '<div class="empty"><span>📋</span>Пусто</div>';
 }
 
 function renderIncome(){
-    const active=data.income.filter(i=>!i._archived).sort((a,b)=>(b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''));
-    const archived=data.income.filter(i=>i._archived).sort((a,b)=>(b.archivedAt||'').localeCompare(a.archivedAt||''));
-    const list=incomeFilter==='active'?active:archived;
+    const active = D.income.filter(i=>!i._archived).sort((a,b)=>(b.ts||b.date||'').localeCompare(a.ts||a.date||''));
+    const archived = D.income.filter(i=>i._archived).sort((a,b)=>(b._archivedAt||'').localeCompare(a._archivedAt||''));
+    const list = incF==='active' ? active : archived;
     
-    document.getElementById('incomeCount').textContent=`(${active.length})`;
-    document.getElementById('incomeList').innerHTML=list.length?list.map(i=>{
-        const pr=data.projects.find(p=>p.id===i.projectId);
-        const isArch=i._archived;
-        return`<div class="list-item ${isArch?'archived':''}">
-            <div class="row"><div><div class="title">${pr?pr.name:i.projectId}</div><div class="subtitle">${fmtDate(i.date)} • ${i.type} • ${i.method||''}</div>${i.author?`<div class="author">👤 ${i.author}</div>`:''}</div><div class="amount income">+${fmt(i.amount)}</div></div>
+    document.getElementById('incomeCount').textContent = `(${active.length})`;
+    document.getElementById('incomeList').innerHTML = list.length ? list.map(i=>{
+        const p = D.projects.find(x=>x.id===i.projectId);
+        const arch = i._archived;
+        return `<div class="list-item ${arch?'archived':''}">
+            <div class="row"><div><div class="title">${p?p.name:i.projectId}</div><div class="subtitle">${fmtD(i.date)} • ${i.type} • ${i.method||''}</div>${i.author?`<div class="author">👤 ${i.author}</div>`:''}</div><div class="amount income">+${fmt(i.amount)}</div></div>
             ${i.note?`<div class="subtitle">💬 ${i.note}</div>`:''}
-            ${isArch?`<div class="subtitle" style="color:var(--red)">🗑 ${i.archivedBy||''} • ${fmtDate((i.archivedAt||'').split('T')[0])}</div>`:''}
-            <div class="actions">
-                ${isArch?`<button class="action-btn success" onclick="restoreIncome('${i.id}')">♻️ Восстановить</button>`:`<button class="action-btn danger" onclick="archiveIncome('${i.id}')">🗑 В архив</button>`}
-            </div>
+            ${arch?`<div class="subtitle" style="color:var(--red)">🗑 ${i._archivedBy||''} • ${fmtD((i._archivedAt||'').split('T')[0])}</div>`:''}
+            <div class="actions">${arch?`<button class="action-btn success" onclick="restoreIncome('${i.id}')">♻️</button>`:`<button class="action-btn danger" onclick="archiveIncome('${i.id}')">🗑</button>`}</div>
         </div>`;
-    }).join(''):'<div class="empty"><span>📭</span>Пусто</div>';
+    }).join('') : '<div class="empty"><span>📭</span>Пусто</div>';
 }
 
 function renderExpenses(){
-    const active=data.expenses.filter(e=>!e._archived).sort((a,b)=>(b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''));
-    const archived=data.expenses.filter(e=>e._archived).sort((a,b)=>(b.archivedAt||'').localeCompare(a.archivedAt||''));
-    const list=expenseFilter==='active'?active:archived;
+    const active = D.expenses.filter(e=>!e._archived).sort((a,b)=>(b.ts||b.date||'').localeCompare(a.ts||a.date||''));
+    const archived = D.expenses.filter(e=>e._archived).sort((a,b)=>(b._archivedAt||'').localeCompare(a._archivedAt||''));
+    const list = expF==='active' ? active : archived;
     
-    document.getElementById('expenseCount').textContent=`(${active.length})`;
-    document.getElementById('expenseList').innerHTML=list.length?list.map(e=>{
-        const isArch=e._archived;
-        return`<div class="list-item ${isArch?'archived':''}">
-            <div class="row"><div><div class="title">${e.category}</div><div class="subtitle">${fmtDate(e.date)} • ${e.projectId} • ${e.method||''}</div>${e.author?`<div class="author">👤 ${e.author}</div>`:''}</div><div class="amount expense">-${fmt(e.amount)}</div></div>
+    document.getElementById('expenseCount').textContent = `(${active.length})`;
+    document.getElementById('expenseList').innerHTML = list.length ? list.map(e=>{
+        const arch = e._archived;
+        return `<div class="list-item ${arch?'archived':''}">
+            <div class="row"><div><div class="title">${e.category}</div><div class="subtitle">${fmtD(e.date)} • ${e.projectId} • ${e.method||''}</div>${e.author?`<div class="author">👤 ${e.author}</div>`:''}</div><div class="amount expense">-${fmt(e.amount)}</div></div>
             ${e.desc?`<div class="subtitle">📝 ${e.desc}</div>`:''}
             ${e.photo?`<img src="${e.photo}" class="photo-thumb" onclick="viewPhoto('${e.id}')">`:''}
-            ${isArch?`<div class="subtitle" style="color:var(--red)">🗑 ${e.archivedBy||''} • ${fmtDate((e.archivedAt||'').split('T')[0])}</div>`:''}
-            <div class="actions">
-                ${isArch?`<button class="action-btn success" onclick="restoreExpense('${e.id}')">♻️ Восстановить</button>`:`<button class="action-btn danger" onclick="archiveExpense('${e.id}')">🗑 В архив</button>`}
-            </div>
+            ${arch?`<div class="subtitle" style="color:var(--red)">🗑 ${e._archivedBy||''} • ${fmtD((e._archivedAt||'').split('T')[0])}</div>`:''}
+            <div class="actions">${arch?`<button class="action-btn success" onclick="restoreExpense('${e.id}')">♻️</button>`:`<button class="action-btn danger" onclick="archiveExpense('${e.id}')">🗑</button>`}</div>
         </div>`;
-    }).join(''):'<div class="empty"><span>📭</span>Пусто</div>';
+    }).join('') : '<div class="empty"><span>📭</span>Пусто</div>';
 }
 
 function renderAssets(){
-    const aa=data.assets.filter(a=>a.qty>0);
-    const tA=aa.reduce((s,a)=>s+(a.totalCost||0),0);
-    document.getElementById('totalAssets').textContent=fmt(tA);
-    document.getElementById('assetsList').innerHTML=aa.length?aa.map(a=>`<div class="list-item">
-        <div class="row"><div><div class="title">${a.name}</div><div class="subtitle">${fmt(a.pricePerUnit)} за ${a.unit}</div>${a.author?`<div class="author">👤 ${a.author}</div>`:''}</div><div><div class="amount assets">${a.qty} ${a.unit}</div><div class="subtitle">${fmt(a.totalCost)}</div></div></div>
-    </div>`).join(''):'<div class="empty"><span>📦</span>Пусто</div>';
+    const aa = D.assets.filter(a=>a.qty>0);
+    document.getElementById('totalAssets').textContent = fmt(aa.reduce((s,a)=>s+(a.totalCost||0),0));
+    document.getElementById('assetsList').innerHTML = aa.length ? aa.map(a=>`<div class="list-item"><div class="row"><div><div class="title">${a.name}</div><div class="subtitle">${fmt(a.pricePerUnit)} за ${a.unit}</div>${a.author?`<div class="author">👤 ${a.author}</div>`:''}</div><div><div class="amount assets">${a.qty} ${a.unit}</div><div class="subtitle">${fmt(a.totalCost)}</div></div></div></div>`).join('') : '<div class="empty"><span>📦</span>Пусто</div>';
 }
 
-function updateAnalytics(){
-    const f=document.getElementById('dateFrom').value;
-    const t=document.getElementById('dateTo').value;
-    const income=data.income.filter(i=>!i._archived&&(!f||i.date>=f)&&(!t||i.date<=t));
-    const expenses=data.expenses.filter(e=>!e._archived&&(!f||e.date>=f)&&(!t||e.date<=t));
-    const tI=income.reduce((s,i)=>s+i.amount,0);
-    const tE=expenses.reduce((s,e)=>s+e.amount,0);
-    const tA=data.assets.reduce((s,a)=>s+(a.totalCost||0),0);
+function renderAnalytics(){
+    const f = document.getElementById('dateFrom').value;
+    const t = document.getElementById('dateTo').value;
+    const inc = D.income.filter(i=>!i._archived&&(!f||i.date>=f)&&(!t||i.date<=t));
+    const exp = D.expenses.filter(e=>!e._archived&&(!f||e.date>=f)&&(!t||e.date<=t));
+    const tI = inc.reduce((s,i)=>s+i.amount,0);
+    const tE = exp.reduce((s,e)=>s+e.amount,0);
+    const tA = D.assets.reduce((s,a)=>s+(a.totalCost||0),0);
     
-    document.getElementById('statIncome').textContent=fmt(tI);
-    document.getElementById('statExpense').textContent=fmt(tE);
-    document.getElementById('statFree').textContent=fmt(tI-tE-tA);
+    document.getElementById('statIncome').textContent = fmt(tI);
+    document.getElementById('statExpense').textContent = fmt(tE);
+    document.getElementById('statFree').textContent = fmt(tI-tE-tA);
     
-    const byCat={};expenses.forEach(e=>{byCat[e.category]=(byCat[e.category]||0)+e.amount});
-    const sC=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,10);
-    document.getElementById('categoryStats').innerHTML=sC.length?sC.map(([c,s])=>{
-        const pc=tE?Math.round((s/tE)*100):0;
-        return`<div class="list-item"><div class="row"><div class="title">${c}</div><div class="amount expense">${fmt(s)}</div></div><div class="progress-bar"><div class="fill" style="width:${pc}%;background:var(--red)"></div></div></div>`;
-    }).join(''):'<p style="color:var(--text2)">Нет данных</p>';
+    const bc = {};
+    exp.forEach(e=>{ bc[e.category] = (bc[e.category]||0) + e.amount; });
+    const sc = Object.entries(bc).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    
+    document.getElementById('categoryStats').innerHTML = sc.length ? sc.map(([c,s])=>`<div class="list-item"><div class="row"><div class="title">${c}</div><div class="amount expense">${fmt(s)}</div></div><div class="progress-bar"><div class="fill" style="width:${tE?Math.round(s/tE*100):0}%;background:var(--red)"></div></div></div>`).join('') : '<p style="color:var(--text2)">Нет данных</p>';
 }
 
 function exportBackup(){
-    const bl=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='backup_'+getDate()+'.json';a.click();toast('💾');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));
+    a.download = 'backup_'+today()+'.json';
+    a.click();
+    toast('💾');
 }
 
 function importBackup(inp){
-    if(!inp.files[0])return;
-    const r=new FileReader();
-    r.onload=e=>{try{const im=JSON.parse(e.target.result);if(im.projects){if(confirm('Заменить данные?')){data=im;saveLocal();saveToCloud();updateAll();toast('✅')}}else{toast('❌')}}catch{toast('❌')}};
-    r.readAsText(inp.files[0]);inp.value='';
+    if(!inp.files[0]) return;
+    const r = new FileReader();
+    r.onload = async e => {
+        try{
+            const d = JSON.parse(e.target.result);
+            if(d.projects){
+                D = d;
+                if(await saveCloud()){ render(); toast('✅'); }
+            }
+        } catch{ toast('❌'); }
+    };
+    r.readAsText(inp.files[0]);
+    inp.value = '';
 }
 
-document.getElementById('dateFrom').addEventListener('change',updateAnalytics);
-document.getElementById('dateTo').addEventListener('change',updateAnalytics);
+document.getElementById('dateFrom').addEventListener('change', renderAnalytics);
+document.getElementById('dateTo').addEventListener('change', renderAnalytics);
 
 init();
 </script>
