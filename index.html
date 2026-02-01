@@ -354,7 +354,20 @@ async function saveCloud() {
 
 async function manualSync() { toast('🔄'); await loadCloud(); render(); toast('✅'); }
 function saveLocal() { try { localStorage.setItem('IM19', JSON.stringify(D)); } catch(e) {} }
-function loadLocal() { try { const s = localStorage.getItem('IM19'); if(s) D = JSON.parse(s); } catch(e) {} }
+function loadLocal() { 
+    try { 
+        // Пробуем загрузить из новой версии
+        let s = localStorage.getItem('IM19'); 
+        if(s) { D = JSON.parse(s); return; }
+        
+        // Миграция со старых версий
+        s = localStorage.getItem('IM18') || localStorage.getItem('IM17') || localStorage.getItem('IM16') || localStorage.getItem('IM15');
+        if(s) { 
+            D = JSON.parse(s); 
+            saveLocal(); // Сохраняем в новый ключ
+        }
+    } catch(e) {} 
+}
 
 function fix() {
     D.projects = D.projects || [];
