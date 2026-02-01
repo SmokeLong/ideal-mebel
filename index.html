@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>IDEAL MEBEL</title>
     <style>
@@ -22,9 +22,9 @@
         .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
         .container{padding:14px;max-width:600px;margin:0 auto}
         .nav{background:var(--card);display:flex;justify-content:space-around;padding:8px 4px;border-top:1px solid var(--border)}
-        .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text2);font-size:9px;padding:6px 8px;border-radius:10px;cursor:pointer;border:none;background:none;min-width:50px}
+        .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text2);font-size:9px;padding:6px 10px;border-radius:10px;cursor:pointer;border:none;background:none}
         .nav-item.active{color:var(--accent2);background:rgba(139,115,85,.15)}
-        .nav-item span{font-size:20px}
+        .nav-item span{font-size:22px}
         .panel{display:none}.panel.active{display:block}
         .card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid var(--border)}
         .card-title{font-size:13px;color:var(--text2);margin-bottom:12px}
@@ -46,8 +46,9 @@
         .summary-card .value.expense{color:var(--red)}
         .summary-card .value.profit{color:var(--accent2)}
         .summary-card .value.assets{color:var(--yellow)}
-        .list-item{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border);overflow:hidden}
-        .list-item.archived{opacity:.5;border-style:dashed}
+        .list-item{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
+        .list-item.archived{opacity:.6;border-style:dashed}
+        .list-item.deleted{opacity:.4;border-color:var(--red)}
         .list-item .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
         .list-item .title{font-weight:600;font-size:14px}
         .list-item .subtitle{font-size:11px;color:var(--text2);margin-top:3px}
@@ -62,12 +63,15 @@
         .progress-bar{height:5px;background:var(--card2);border-radius:3px;margin-top:8px;overflow:hidden}
         .progress-bar .fill{height:100%;border-radius:3px;max-width:100%}
         .actions{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
-        .action-btn{padding:6px 12px;border:none;border-radius:8px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text);border:1px solid var(--border)}
+        .action-btn{padding:6px 10px;border:none;border-radius:8px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text);border:1px solid var(--border)}
         .action-btn.danger{color:var(--red)}
         .action-btn.success{color:var(--green)}
-        .tabs{display:flex;gap:6px;margin-bottom:14px}
-        .tab-btn{padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-size:12px;cursor:pointer}
+        .tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto}
+        .tab-btn{padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-size:11px;cursor:pointer;white-space:nowrap}
         .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .period-tabs{display:flex;gap:6px;margin-bottom:14px}
+        .period-btn{flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:11px;cursor:pointer;text-align:center}
+        .period-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
         .stages{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
         .stage{padding:4px 8px;background:var(--card2);border-radius:6px;font-size:9px;color:var(--text2);cursor:pointer}
         .stage.active{background:var(--accent);color:#fff}
@@ -86,8 +90,6 @@
         .photo-preview{width:100%;max-height:100px;object-fit:cover;border-radius:10px;margin-top:8px;display:none}
         .photo-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:var(--card2);border:2px dashed var(--border);border-radius:10px;color:var(--text2);cursor:pointer}
         .photo-thumb{height:40px;border-radius:6px;margin-top:6px;cursor:pointer}
-        .date-filter{display:flex;gap:8px;margin-bottom:14px}
-        .date-filter .form-group{flex:1;margin-bottom:0}
         .empty{text-align:center;padding:30px;color:var(--text2)}
         .empty span{font-size:40px;display:block;margin-bottom:10px}
         .profit-box{background:linear-gradient(135deg,var(--card2),var(--card));border:2px solid var(--accent);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center}
@@ -108,7 +110,21 @@
     </div>
     <div class="content">
         <div class="container">
+            <!-- ГЛАВНАЯ -->
             <div id="home" class="panel active">
+                <div class="period-tabs">
+                    <button class="period-btn active" onclick="setPeriod('all')">Всё</button>
+                    <button class="period-btn" onclick="setPeriod('year')">Год</button>
+                    <button class="period-btn" onclick="setPeriod('month')">Мес</button>
+                    <button class="period-btn" onclick="setPeriod('week')">Нед</button>
+                    <button class="period-btn" onclick="setPeriod('custom')">📅</button>
+                </div>
+                <div id="customPeriod" style="display:none;margin-bottom:14px">
+                    <div style="display:flex;gap:8px">
+                        <div style="flex:1"><label style="font-size:11px;color:var(--text2)">С</label><input type="date" id="periodFrom" onchange="applyCustomPeriod()"></div>
+                        <div style="flex:1"><label style="font-size:11px;color:var(--text2)">По</label><input type="date" id="periodTo" onchange="applyCustomPeriod()"></div>
+                    </div>
+                </div>
                 <div class="profit-box"><div class="label">💵 СВОБОДНЫЕ ДЕНЬГИ</div><div class="big-value income" id="homeFree">0 ₽</div></div>
                 <div class="summary-grid">
                     <div class="summary-card"><div class="label">💰 Доходы</div><div class="value income" id="homeIncome">0 ₽</div></div>
@@ -122,17 +138,21 @@
                     <button class="quick-btn" onclick="newProject()"><span>📋</span>Проект</button>
                     <button class="quick-btn" onclick="openAddAsset()"><span>📦</span>Склад</button>
                 </div>
-                <div class="card"><div class="card-title">📈 Последние</div><div id="recentOps"></div></div>
+                <div class="card"><div class="card-title">📁 Расходы по категориям</div><div id="catStats"></div></div>
+                <div class="card"><div class="card-title">📈 Последние операции</div><div id="recentOps"></div></div>
             </div>
+            <!-- ПРОЕКТЫ -->
             <div id="projects" class="panel">
                 <div class="tabs" id="projectsTabs">
-                    <button class="tab-btn active" data-f="active">В работе</button>
-                    <button class="tab-btn" data-f="done">Завершённые</button>
-                    <button class="tab-btn" data-f="archive">Архив</button>
+                    <button class="tab-btn active" onclick="setProjFilter('active')">В работе</button>
+                    <button class="tab-btn" onclick="setProjFilter('done')">Завершённые</button>
+                    <button class="tab-btn" onclick="setProjFilter('archive')">Архив</button>
+                    <button class="tab-btn" onclick="setProjFilter('deleted')">Удалённые</button>
                 </div>
                 <button class="btn btn-primary" onclick="newProject()" style="margin-bottom:14px">➕ Новый проект</button>
                 <div id="projectsList"></div>
             </div>
+            <!-- ДОХОДЫ -->
             <div id="income" class="panel">
                 <div class="card">
                     <div class="card-title">💰 Записать доход</div>
@@ -147,58 +167,59 @@
                     <button class="btn btn-success" onclick="saveIncome()">✅ Записать</button>
                 </div>
                 <div class="card">
-                    <div class="card-title">📋 История <span id="incomeCount"></span></div>
-                    <div class="tabs" id="incomeTabs"><button class="tab-btn active" data-f="active">Актуальные</button><button class="tab-btn" data-f="archive">Архив</button></div>
+                    <div class="card-title">📋 История</div>
+                    <div class="tabs" id="incomeTabs">
+                        <button class="tab-btn active" onclick="setIncFilter('active')">Актуальные</button>
+                        <button class="tab-btn" onclick="setIncFilter('archived')">Архив</button>
+                        <button class="tab-btn" onclick="setIncFilter('deleted')">Удалённые</button>
+                    </div>
                     <div id="incomeList"></div>
                 </div>
             </div>
+            <!-- РАСХОДЫ -->
             <div id="expense" class="panel">
                 <div class="card">
                     <div class="card-title">💸 Записать расход</div>
                     <div class="form-group"><label>Кто записывает</label><input type="text" id="expenseAuthor"></div>
                     <div class="form-group"><label>Проект</label><select id="expenseProject"></select></div>
-                    <div class="form-group"><label>Категория</label><select id="expenseCategory"><option>Магазины</option><option>Закуп материалов</option><option>Амортизация предприятия</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Бензин</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option><option>Фирма</option></select></div>
+                    <div class="form-group"><label>Категория</label><select id="expenseCategory"><option>Магазины</option><option>Закуп материалов</option><option>Амортизация</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Бензин</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option><option>Фирма</option></select></div>
                     <div class="form-row">
                         <div class="form-group"><label>Сумма (₽)</label><input type="number" id="expenseAmount" inputmode="decimal"></div>
                         <div class="form-group"><label>Способ</label><select id="expenseMethod"><option>Наличные</option><option>Безнал</option><option>Перевод</option></select></div>
                     </div>
                     <div class="form-group"><label>Описание</label><input type="text" id="expenseDesc"></div>
-                    <div class="form-group"><label>Фото</label><label class="photo-btn" for="expensePhoto">📷 Фото</label><input type="file" id="expensePhoto" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)"><img id="photoPreview" class="photo-preview"></div>
+                    <div class="form-group"><label>Фото</label><label class="photo-btn" for="expensePhoto">📷 Прикрепить фото</label><input type="file" id="expensePhoto" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)"><img id="photoPreview" class="photo-preview"></div>
                     <button class="btn btn-danger" onclick="saveExpense()">💸 Записать</button>
                 </div>
                 <div class="card">
-                    <div class="card-title">📋 История <span id="expenseCount"></span></div>
-                    <div class="tabs" id="expenseTabs"><button class="tab-btn active" data-f="active">Актуальные</button><button class="tab-btn" data-f="archive">Архив</button></div>
+                    <div class="card-title">📋 История</div>
+                    <div class="tabs" id="expenseTabs">
+                        <button class="tab-btn active" onclick="setExpFilter('active')">Актуальные</button>
+                        <button class="tab-btn" onclick="setExpFilter('archived')">Архив</button>
+                        <button class="tab-btn" onclick="setExpFilter('deleted')">Удалённые</button>
+                    </div>
                     <div id="expenseList"></div>
                 </div>
             </div>
+            <!-- СКЛАД -->
             <div id="assets" class="panel">
                 <div class="profit-box"><div class="label">📦 НА СКЛАДЕ</div><div class="big-value assets" id="totalAssets">0 ₽</div></div>
-                <button class="btn btn-primary" onclick="openAddAsset()" style="margin-bottom:10px">➕ Добавить</button>
-                <button class="btn btn-secondary" onclick="openUseAsset()" style="margin-bottom:14px">📤 Списать</button>
+                <button class="btn btn-primary" onclick="openAddAsset()" style="margin-bottom:10px">➕ Добавить материал</button>
+                <button class="btn btn-secondary" onclick="openUseAsset()" style="margin-bottom:14px">📤 Списать на проект</button>
                 <div id="assetsList"></div>
-            </div>
-            <div id="analytics" class="panel">
-                <div class="profit-box"><div class="label">💵 ЧИСТАЯ ПРИБЫЛЬ</div><div class="big-value income" id="statFree">0 ₽</div></div>
-                <div class="date-filter"><div class="form-group"><label>С</label><input type="date" id="dateFrom"></div><div class="form-group"><label>По</label><input type="date" id="dateTo"></div></div>
-                <div class="summary-grid">
-                    <div class="summary-card"><div class="label">💰 Доходы</div><div class="value income" id="statIncome">0 ₽</div></div>
-                    <div class="summary-card"><div class="label">💸 Расходы</div><div class="value expense" id="statExpense">0 ₽</div></div>
-                </div>
-                <div class="card"><div class="card-title">📁 По категориям</div><div id="categoryStats"></div></div>
             </div>
         </div>
     </div>
     <nav class="nav">
-        <button class="nav-item active" data-p="home"><span>🏠</span>Главная</button>
-        <button class="nav-item" data-p="projects"><span>📋</span>Проекты</button>
-        <button class="nav-item" data-p="income"><span>💰</span>Доход</button>
-        <button class="nav-item" data-p="expense"><span>💸</span>Расход</button>
-        <button class="nav-item" data-p="assets"><span>📦</span>Склад</button>
-        <button class="nav-item" data-p="analytics"><span>📊</span>Сводка</button>
+        <button class="nav-item active" onclick="showPanel('home')"><span>🏠</span>Главная</button>
+        <button class="nav-item" onclick="showPanel('projects')"><span>📋</span>Проекты</button>
+        <button class="nav-item" onclick="showPanel('income')"><span>💰</span>Доход</button>
+        <button class="nav-item" onclick="showPanel('expense')"><span>💸</span>Расход</button>
+        <button class="nav-item" onclick="showPanel('assets')"><span>📦</span>Склад</button>
     </nav>
 </div>
 <div class="toast" id="toast"></div>
+<!-- Модалка проекта -->
 <div class="modal" id="modalProject"><div class="modal-content">
     <div class="modal-header"><div class="modal-title" id="projectModalTitle">➕ Новый проект</div><button class="modal-close" onclick="closeModal('project')">✕</button></div>
     <input type="hidden" id="editProjectId">
@@ -207,264 +228,351 @@
     <div class="form-group"><label>Клиент</label><input type="text" id="projectClient"></div>
     <div class="form-group"><label>Адрес</label><input type="text" id="projectAddress"></div>
     <div class="form-group"><label>Телефон</label><input type="tel" id="projectPhone"></div>
-    <div class="form-group"><label>Сумма (₽)</label><input type="number" id="projectSum" inputmode="decimal"></div>
-    <div class="form-row"><div class="form-group"><label>Дата договора</label><input type="date" id="projectDateStart"></div><div class="form-group"><label>Дедлайн</label><input type="date" id="projectDeadline"></div></div>
+    <div class="form-group"><label>Сумма договора (₽)</label><input type="number" id="projectSum" inputmode="decimal"></div>
+    <div class="form-row">
+        <div class="form-group"><label>Дата договора</label><input type="date" id="projectDateStart"></div>
+        <div class="form-group"><label>Дедлайн</label><input type="date" id="projectDeadline"></div>
+    </div>
     <button class="btn btn-primary" onclick="saveProject()">✅ Сохранить</button>
 </div></div>
+<!-- Модалка просмотра -->
 <div class="modal" id="modalView"><div class="modal-content">
     <div class="modal-header"><div class="modal-title" id="viewTitle"></div><button class="modal-close" onclick="closeModal('view')">✕</button></div>
     <div id="viewContent"></div>
 </div></div>
+<!-- Модалка материала -->
 <div class="modal" id="modalAsset"><div class="modal-content">
-    <div class="modal-header"><div class="modal-title">➕ Материал</div><button class="modal-close" onclick="closeModal('asset')">✕</button></div>
+    <div class="modal-header"><div class="modal-title">➕ Добавить материал</div><button class="modal-close" onclick="closeModal('asset')">✕</button></div>
     <div class="form-group"><label>Кто добавляет</label><input type="text" id="assetAuthor"></div>
     <div class="form-group"><label>Название</label><input type="text" id="newAssetName"></div>
-    <div class="form-row"><div class="form-group"><label>Кол-во</label><input type="number" id="newAssetQty" inputmode="decimal"></div><div class="form-group"><label>Ед.</label><select id="newAssetUnit"><option>шт</option><option>м²</option><option>м.п.</option><option>кг</option><option>л</option><option>уп</option></select></div></div>
-    <div class="form-group"><label>Стоимость (₽)</label><input type="number" id="newAssetCost" inputmode="decimal"></div>
+    <div class="form-row">
+        <div class="form-group"><label>Количество</label><input type="number" id="newAssetQty" inputmode="decimal"></div>
+        <div class="form-group"><label>Единица</label><select id="newAssetUnit"><option>шт</option><option>м²</option><option>м.п.</option><option>кг</option><option>л</option><option>уп</option></select></div>
+    </div>
+    <div class="form-group"><label>Общая стоимость (₽)</label><input type="number" id="newAssetCost" inputmode="decimal"></div>
     <button class="btn btn-primary" onclick="addAsset()">✅ Добавить</button>
 </div></div>
+<!-- Модалка списания -->
 <div class="modal" id="modalUse"><div class="modal-content">
-    <div class="modal-header"><div class="modal-title">📤 Списать</div><button class="modal-close" onclick="closeModal('use')">✕</button></div>
+    <div class="modal-header"><div class="modal-title">📤 Списать материал</div><button class="modal-close" onclick="closeModal('use')">✕</button></div>
     <div class="form-group"><label>Кто списывает</label><input type="text" id="useAssetAuthor"></div>
     <div class="form-group"><label>Материал</label><select id="useAssetSelect"></select></div>
-    <div class="form-group"><label>Кол-во</label><input type="number" id="useAssetQty" inputmode="decimal"></div>
+    <div class="form-group"><label>Количество</label><input type="number" id="useAssetQty" inputmode="decimal"></div>
     <div class="form-group"><label>На проект</label><select id="useAssetProject"></select></div>
     <button class="btn btn-primary" onclick="useAsset()">📤 Списать</button>
 </div></div>
+<!-- Настройки -->
 <div class="modal" id="modalSettings"><div class="modal-content">
     <div class="modal-header"><div class="modal-title">⚙️ Настройки</div><button class="modal-close" onclick="closeModal('settings')">✕</button></div>
-    <div class="card"><button class="btn btn-primary" onclick="manualSync()">🔄 Синхронизировать</button></div>
-    <div class="card"><div class="btn-row"><button class="btn btn-secondary" onclick="exportBackup()">💾 Бэкап</button><button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📤 Загрузить</button></div><input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(this)"></div>
+    <div class="card"><button class="btn btn-primary" onclick="manualSync()">🔄 Синхронизировать сейчас</button></div>
+    <div class="card">
+        <div class="card-title">💾 Резервная копия</div>
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="exportBackup()">💾 Скачать</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📤 Загрузить</button>
+        </div>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(this)">
+    </div>
 </div></div>
+<!-- Фото -->
 <div class="modal" id="modalPhoto" onclick="closeModal('photo')"><img id="modalPhotoImg" style="max-width:95%;max-height:90%;border-radius:12px"></div>
+
 <script>
 const API='https://script.google.com/macros/s/AKfycbwlmez3kvl2aq6oiDCbMRjBuwlyEVjkx0FNexmnU40A81JsMeI9fsmAResAoktYhr_0/exec';
 let D={projects:[],income:[],expenses:[],assets:[]};
-let projF='active',incF='active',expF='active',syncing=false,photo=null;
+let projF='active', incF='active', expF='active', period='all', customFrom='', customTo='', syncing=false, photo=null;
 
-// === MERGE ===
-function merge(local,cloud){
-    const map=new Map();
-    (cloud||[]).forEach(item=>{if(item&&item.id)map.set(item.id,item);});
-    (local||[]).forEach(item=>{
-        if(!item||!item.id)return;
-        const ex=map.get(item.id);
-        if(!ex)map.set(item.id,item);
-        else if(item._archived&&!ex._archived)map.set(item.id,item);
-        else if(!ex._archived||(item._archived===ex._archived)){
-            if((item.ts||'')>(ex.ts||''))map.set(item.id,item);
-        }
+// === СИНХРОНИЗАЦИЯ ===
+function merge(local, cloud) {
+    const map = new Map();
+    (cloud||[]).forEach(item => { if(item && item.id) map.set(item.id, item); });
+    (local||[]).forEach(item => {
+        if(!item || !item.id) return;
+        const ex = map.get(item.id);
+        if(!ex) { map.set(item.id, item); }
+        else if((item._deleted || item._archived) && !(ex._deleted || ex._archived)) { map.set(item.id, item); }
+        else if((item.ts||'') > (ex.ts||'')) { map.set(item.id, item); }
     });
     return Array.from(map.values());
 }
 
-// === SYNC ===
-async function loadCloud(){
-    if(syncing)return;syncing=true;setSync('syncing','...');
-    try{
-        const r=await fetch(API+'?action=getData&t='+Date.now());
-        const c=await r.json();
-        if(c&&c.projects!==undefined){
-            D.projects=merge(D.projects,c.projects);
-            D.income=merge(D.income,c.income);
-            D.expenses=merge(D.expenses,c.expenses);
-            D.assets=merge(D.assets,c.assets);
-            fix();saveLocal();render();setSync('online','OK');
-        }else setSync('offline','Ошибка');
-    }catch(e){console.error(e);setSync('offline','Офлайн');}
-    syncing=false;
+async function loadCloud() {
+    if(syncing) return;
+    syncing = true;
+    setSync('syncing', '...');
+    try {
+        const r = await fetch(API + '?action=getData&t=' + Date.now());
+        const c = await r.json();
+        if(c && c.projects !== undefined) {
+            D.projects = merge(D.projects, c.projects);
+            D.income = merge(D.income, c.income);
+            D.expenses = merge(D.expenses, c.expenses);
+            D.assets = merge(D.assets, c.assets);
+            fix(); saveLocal(); render();
+            setSync('online', 'OK');
+        } else {
+            setSync('offline', 'Ошибка');
+        }
+    } catch(e) {
+        console.error(e);
+        setSync('offline', 'Офлайн');
+    }
+    syncing = false;
 }
 
-async function saveCloud(){
-    if(syncing)return false;syncing=true;setSync('syncing','...');
-    try{
-        const r1=await fetch(API+'?action=getData&t='+Date.now());
-        const c=await r1.json();
-        if(c&&c.projects!==undefined){
-            D.projects=merge(D.projects,c.projects);
-            D.income=merge(D.income,c.income);
-            D.expenses=merge(D.expenses,c.expenses);
-            D.assets=merge(D.assets,c.assets);
+async function saveCloud() {
+    if(syncing) return false;
+    syncing = true;
+    setSync('syncing', '...');
+    try {
+        // Сначала загружаем актуальные данные
+        const r1 = await fetch(API + '?action=getData&t=' + Date.now());
+        const c = await r1.json();
+        if(c && c.projects !== undefined) {
+            D.projects = merge(D.projects, c.projects);
+            D.income = merge(D.income, c.income);
+            D.expenses = merge(D.expenses, c.expenses);
+            D.assets = merge(D.assets, c.assets);
         }
         fix();
-        const r2=await fetch(API+'?action=saveData',{method:'POST',body:JSON.stringify(D)});
-        const res=await r2.json();
-        if(res.success){saveLocal();setSync('online','OK');syncing=false;return true;}
-    }catch(e){console.error(e);}
-    setSync('offline','Ошибка');syncing=false;return false;
+        // Сохраняем
+        const r2 = await fetch(API + '?action=saveData', { method: 'POST', body: JSON.stringify(D) });
+        const res = await r2.json();
+        if(res.success) {
+            saveLocal();
+            setSync('online', 'OK');
+            syncing = false;
+            return true;
+        }
+    } catch(e) {
+        console.error(e);
+    }
+    setSync('offline', 'Ошибка');
+    syncing = false;
+    return false;
 }
 
-async function manualSync(){toast('🔄');await loadCloud();render();toast('✅');}
-function saveLocal(){try{localStorage.setItem('IM17',JSON.stringify(D));}catch(e){}}
-function loadLocal(){try{const s=localStorage.getItem('IM17');if(s)D=JSON.parse(s);}catch(e){}}
-function fix(){
-    D.projects=D.projects||[];D.income=D.income||[];D.expenses=D.expenses||[];D.assets=D.assets||[];
-    D.projects.forEach(p=>{p.sum=parseFloat(p.sum)||0;p.stage=parseInt(p.stage)||0;});
-    D.income.forEach(i=>{i.amount=parseFloat(i.amount)||0;});
-    D.expenses.forEach(e=>{e.amount=parseFloat(e.amount)||0;});
-    D.assets.forEach(a=>{a.qty=parseFloat(a.qty)||0;a.pricePerUnit=parseFloat(a.pricePerUnit)||0;a.totalCost=parseFloat(a.totalCost)||0;});
-    D.projects.forEach(p=>{p.paid=D.income.filter(i=>i.projectId===p.id&&!i._archived).reduce((s,i)=>s+i.amount,0);});
-}
-function setSync(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncStatus').textContent=t;}
+async function manualSync() { toast('🔄'); await loadCloud(); render(); toast('✅'); }
+function saveLocal() { try { localStorage.setItem('IM19', JSON.stringify(D)); } catch(e) {} }
+function loadLocal() { try { const s = localStorage.getItem('IM19'); if(s) D = JSON.parse(s); } catch(e) {} }
 
-// === INIT ===
-async function init(){
-    loadLocal();fix();
-    // Даты для сводки - весь период
-    document.getElementById('dateFrom').value='2020-01-01';
-    document.getElementById('dateTo').value=new Date().toISOString().split('T')[0];
-    document.getElementById('projectDateStart').value=new Date().toISOString().split('T')[0];
-    render();
-    await loadCloud();
-    setInterval(loadCloud,10000);
-    
-    // Event listeners
-    document.querySelectorAll('.nav-item').forEach(b=>b.onclick=function(){showPanel(this.dataset.p);});
-    document.querySelectorAll('#projectsTabs .tab-btn').forEach(b=>b.onclick=function(){projF=this.dataset.f;document.querySelectorAll('#projectsTabs .tab-btn').forEach(t=>t.classList.remove('active'));this.classList.add('active');renderProjects();});
-    document.querySelectorAll('#incomeTabs .tab-btn').forEach(b=>b.onclick=function(){incF=this.dataset.f;document.querySelectorAll('#incomeTabs .tab-btn').forEach(t=>t.classList.remove('active'));this.classList.add('active');renderIncome();});
-    document.querySelectorAll('#expenseTabs .tab-btn').forEach(b=>b.onclick=function(){expF=this.dataset.f;document.querySelectorAll('#expenseTabs .tab-btn').forEach(t=>t.classList.remove('active'));this.classList.add('active');renderExpenses();});
-    document.getElementById('dateFrom').onchange=renderAnalytics;
-    document.getElementById('dateTo').onchange=renderAnalytics;
+function fix() {
+    D.projects = D.projects || [];
+    D.income = D.income || [];
+    D.expenses = D.expenses || [];
+    D.assets = D.assets || [];
+    D.projects.forEach(p => { p.sum = parseFloat(p.sum) || 0; p.stage = parseInt(p.stage) || 0; });
+    D.income.forEach(i => { i.amount = parseFloat(i.amount) || 0; });
+    D.expenses.forEach(e => { e.amount = parseFloat(e.amount) || 0; });
+    D.assets.forEach(a => { a.qty = parseFloat(a.qty) || 0; a.pricePerUnit = parseFloat(a.pricePerUnit) || 0; a.totalCost = parseFloat(a.totalCost) || 0; });
+    // Пересчёт оплаченного
+    D.projects.forEach(p => {
+        p.paid = D.income.filter(i => i.projectId === p.id && !i._archived && !i._deleted).reduce((s,i) => s + i.amount, 0);
+    });
+}
+
+function setSync(s, t) {
+    document.getElementById('syncDot').className = 'sync-dot ' + s;
+    document.getElementById('syncStatus').textContent = t;
+}
+
+// === УТИЛИТЫ ===
+function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 1500); }
+function fmt(n) { return (Math.round(n) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽'; }
+function now() { return new Date().toISOString(); }
+function today() { return now().split('T')[0]; }
+function fmtD(d) { if(!d) return '—'; if(d.includes('T')) d = d.split('T')[0]; const p = d.split('-'); return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : d; }
+function getDate(item) { return item.date || (item.ts ? item.ts.split('T')[0] : ''); }
+
+function getPeriodStart() {
+    if(period === 'custom') return customFrom || '2000-01-01';
+    const d = new Date();
+    if(period === 'week') d.setDate(d.getDate() - 7);
+    else if(period === 'month') d.setMonth(d.getMonth() - 1);
+    else if(period === 'year') d.setFullYear(d.getFullYear() - 1);
+    else return '2000-01-01';
+    return d.toISOString().split('T')[0];
+}
+
+function getPeriodEnd() {
+    if(period === 'custom') return customTo || today();
+    return today();
 }
 
 // === UI ===
-function showPanel(n){
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
-    document.getElementById(n).classList.add('active');
-    document.querySelector('.nav-item[data-p="'+n+'"]').classList.add('active');
+function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    event.currentTarget.classList.add('active');
 }
-function openModal(n){document.getElementById('modal'+n[0].toUpperCase()+n.slice(1)).classList.add('active');}
-function closeModal(n){document.getElementById('modal'+n[0].toUpperCase()+n.slice(1)).classList.remove('active');}
-function openSettings(){openModal('settings');}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',1500);}
-function fmt(n){return(Math.round(n)||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽';}
-function now(){return new Date().toISOString();}
-function today(){return now().split('T')[0];}
-function fmtD(d){if(!d)return'—';if(d.includes('T'))d=d.split('T')[0];const p=d.split('-');return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:d;}
-function getDate(item){return item.date||(item.ts?item.ts.split('T')[0]:'');}
 
-// === PHOTO ===
-function previewPhoto(inp){
-    if(!inp.files||!inp.files[0])return;
-    const r=new FileReader();
-    r.onload=e=>{
-        const img=new Image();
-        img.onload=()=>{
-            const c=document.createElement('canvas');
-            let w=img.width,h=img.height;
-            if(w>200||h>200){if(w>h){h=h*200/w;w=200;}else{w=w*200/h;h=200;}}
-            c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
-            photo=c.toDataURL('image/jpeg',0.25);
-            document.getElementById('photoPreview').src=photo;
-            document.getElementById('photoPreview').style.display='block';
+function openModal(name) { document.getElementById('modal' + name[0].toUpperCase() + name.slice(1)).classList.add('active'); }
+function closeModal(name) { document.getElementById('modal' + name[0].toUpperCase() + name.slice(1)).classList.remove('active'); }
+function openSettings() { openModal('settings'); }
+
+function setPeriod(p) {
+    period = p;
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    const customDiv = document.getElementById('customPeriod');
+    if(p === 'custom') {
+        customDiv.style.display = 'block';
+        // Установим даты по умолчанию если пустые
+        if(!document.getElementById('periodFrom').value) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - 1);
+            document.getElementById('periodFrom').value = d.toISOString().split('T')[0];
+            document.getElementById('periodTo').value = today();
+        }
+    } else {
+        customDiv.style.display = 'none';
+    }
+    renderHome();
+}
+
+function applyCustomPeriod() {
+    customFrom = document.getElementById('periodFrom').value;
+    customTo = document.getElementById('periodTo').value;
+    renderHome();
+}
+
+function setProjFilter(f) {
+    projF = f;
+    document.querySelectorAll('#projectsTabs .tab-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    renderProjects();
+}
+
+function setIncFilter(f) {
+    incF = f;
+    document.querySelectorAll('#incomeTabs .tab-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    renderIncome();
+}
+
+function setExpFilter(f) {
+    expF = f;
+    document.querySelectorAll('#expenseTabs .tab-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    renderExpenses();
+}
+
+// === ФОТО ===
+function previewPhoto(inp) {
+    if(!inp.files || !inp.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.width, h = img.height;
+            if(w > 200 || h > 200) { if(w > h) { h = h * 200 / w; w = 200; } else { w = w * 200 / h; h = 200; } }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            photo = canvas.toDataURL('image/jpeg', 0.25);
+            document.getElementById('photoPreview').src = photo;
+            document.getElementById('photoPreview').style.display = 'block';
         };
-        img.src=e.target.result;
+        img.src = e.target.result;
     };
-    r.readAsDataURL(inp.files[0]);
+    reader.readAsDataURL(inp.files[0]);
 }
-function viewPhoto(id){const e=D.expenses.find(x=>x.id===id);if(e&&e.photo){document.getElementById('modalPhotoImg').src=e.photo;openModal('photo');}}
 
-// === PROJECTS ===
-function newProject(){
-    document.getElementById('editProjectId').value='';
-    document.getElementById('projectModalTitle').textContent='➕ Новый проект';
-    document.getElementById('projectAuthor').value='';
-    document.getElementById('projectName').value='';
-    document.getElementById('projectClient').value='';
-    document.getElementById('projectAddress').value='';
-    document.getElementById('projectPhone').value='';
-    document.getElementById('projectSum').value='';
-    document.getElementById('projectDateStart').value=today();
-    document.getElementById('projectDeadline').value='';
+function viewPhoto(id) {
+    const e = D.expenses.find(x => x.id === id);
+    if(e && e.photo) {
+        document.getElementById('modalPhotoImg').src = e.photo;
+        openModal('photo');
+    }
+}
+
+// === ПРОЕКТЫ ===
+function newProject() {
+    document.getElementById('editProjectId').value = '';
+    document.getElementById('projectModalTitle').textContent = '➕ Новый проект';
+    ['projectAuthor', 'projectName', 'projectClient', 'projectAddress', 'projectPhone', 'projectSum', 'projectDeadline'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('projectDateStart').value = today();
     openModal('project');
 }
 
-function editProject(id){
-    const p=D.projects.find(x=>x.id===id);
-    if(!p)return;
-    document.getElementById('editProjectId').value=id;
-    document.getElementById('projectModalTitle').textContent='✏️ Редактировать';
-    document.getElementById('projectAuthor').value=p.author||'';
-    document.getElementById('projectName').value=p.name||'';
-    document.getElementById('projectClient').value=p.client||'';
-    document.getElementById('projectAddress').value=p.address||'';
-    document.getElementById('projectPhone').value=p.phone||'';
-    document.getElementById('projectSum').value=p.sum||'';
-    document.getElementById('projectDateStart').value=p.dateStart||'';
-    document.getElementById('projectDeadline').value=p.deadline||'';
+function editProject(id) {
+    const p = D.projects.find(x => x.id === id);
+    if(!p) return;
+    document.getElementById('editProjectId').value = id;
+    document.getElementById('projectModalTitle').textContent = '✏️ Редактировать';
+    document.getElementById('projectAuthor').value = p.author || '';
+    document.getElementById('projectName').value = p.name || '';
+    document.getElementById('projectClient').value = p.client || '';
+    document.getElementById('projectAddress').value = p.address || '';
+    document.getElementById('projectPhone').value = p.phone || '';
+    document.getElementById('projectSum').value = p.sum || '';
+    document.getElementById('projectDateStart').value = p.dateStart || '';
+    document.getElementById('projectDeadline').value = p.deadline || '';
     closeModal('view');
     openModal('project');
 }
 
-async function saveProject(){
-    const editId=document.getElementById('editProjectId').value;
-    const name=document.getElementById('projectName').value.trim();
-    const sum=parseFloat(document.getElementById('projectSum').value)||0;
-    if(!name||!sum)return toast('❌ Заполни название и сумму');
+async function saveProject() {
+    const editId = document.getElementById('editProjectId').value;
+    const name = document.getElementById('projectName').value.trim();
+    const sum = parseFloat(document.getElementById('projectSum').value) || 0;
+    if(!name || !sum) return toast('❌ Заполните название и сумму');
     
-    if(editId){
-        // Редактирование
-        const p=D.projects.find(x=>x.id===editId);
-        if(p){
-            p.name=name;
-            p.client=document.getElementById('projectClient').value.trim();
-            p.address=document.getElementById('projectAddress').value.trim();
-            p.phone=document.getElementById('projectPhone').value.trim();
-            p.sum=sum;
-            p.dateStart=document.getElementById('projectDateStart').value||today();
-            p.deadline=document.getElementById('projectDeadline').value||'';
-            p.author=document.getElementById('projectAuthor').value.trim();
-            p.ts=now();
-        }
-    }else{
-        // Новый проект
-        D.projects.push({
-            id:'П'+Date.now(),
-            name,
-            client:document.getElementById('projectClient').value.trim(),
-            address:document.getElementById('projectAddress').value.trim(),
-            phone:document.getElementById('projectPhone').value.trim(),
-            sum,
-            paid:0,
-            status:'active',
-            stage:0,
-            dateStart:document.getElementById('projectDateStart').value||today(),
-            deadline:document.getElementById('projectDeadline').value||'',
-            author:document.getElementById('projectAuthor').value.trim(),
-            ts:now()
-        });
+    const data = {
+        name,
+        client: document.getElementById('projectClient').value.trim(),
+        address: document.getElementById('projectAddress').value.trim(),
+        phone: document.getElementById('projectPhone').value.trim(),
+        sum,
+        dateStart: document.getElementById('projectDateStart').value || today(),
+        deadline: document.getElementById('projectDeadline').value || '',
+        author: document.getElementById('projectAuthor').value.trim(),
+        ts: now()
+    };
+    
+    if(editId) {
+        const p = D.projects.find(x => x.id === editId);
+        if(p) Object.assign(p, data);
+    } else {
+        data.id = 'П' + Date.now();
+        data.paid = 0;
+        data.status = 'active';
+        data.stage = 0;
+        D.projects.push(data);
     }
     
-    if(await saveCloud()){closeModal('project');render();toast('✅');}
+    if(await saveCloud()) { closeModal('project'); render(); toast('✅'); }
 }
 
-function viewProject(id){
-    const p=D.projects.find(x=>x.id===id);
-    if(!p){toast('❌ Проект не найден');return;}
-    const pI=D.income.filter(i=>i.projectId===id&&!i._archived);
-    const pE=D.expenses.filter(e=>e.projectId===id&&!e._archived);
-    const tE=pE.reduce((s,e)=>s+e.amount,0);
-    const st=['Замер','Дизайн','Производство','Доставка','Монтаж','Готово'];
-    const ph=(p.phone||'').replace(/\D/g,'');
-    document.getElementById('viewTitle').textContent=p.name;
-    document.getElementById('viewContent').innerHTML=`
+function viewProject(id) {
+    const p = D.projects.find(x => x.id === id);
+    if(!p) return toast('Проект не найден');
+    const tE = D.expenses.filter(e => e.projectId === id && !e._archived && !e._deleted).reduce((s,e) => s + e.amount, 0);
+    const stages = ['Замер', 'Дизайн', 'Производство', 'Доставка', 'Монтаж', 'Готово'];
+    const phone = (p.phone || '').replace(/\D/g, '');
+    
+    document.getElementById('viewTitle').textContent = p.name;
+    document.getElementById('viewContent').innerHTML = `
         <div class="list-item">
-            <div>👤 ${p.client||'—'}</div>
-            ${p.address?`<div>📍 ${p.address}</div>`:''}
-            <div>📞 ${p.phone||'—'}</div>
+            <div>👤 ${p.client || '—'}</div>
+            ${p.address ? `<div>📍 ${p.address}</div>` : ''}
+            <div>📞 ${p.phone || '—'}</div>
             <div>📅 ${fmtD(p.dateStart)} → ${fmtD(p.deadline)}</div>
-            ${p.author?`<div class="author">Создал: ${p.author}</div>`:''}
+            ${p.author ? `<div class="author">Создал: ${p.author}</div>` : ''}
         </div>
-        ${ph?`<div class="contact-btns"><a href="https://wa.me/${ph}" class="contact-btn whatsapp">💬</a><a href="tel:${ph}" class="contact-btn phone">📞</a></div>`:''}
-        <div class="card" style="margin-top:12px"><div class="stages">${st.map((s,i)=>`<div class="stage ${i<p.stage?'done':i===p.stage?'active':''}" onclick="setStage('${id}',${i})">${s}</div>`).join('')}</div></div>
+        ${phone ? `<div class="contact-btns"><a href="https://wa.me/${phone}" class="contact-btn whatsapp">💬 WhatsApp</a><a href="tel:${phone}" class="contact-btn phone">📞 Позвонить</a></div>` : ''}
+        <div class="card" style="margin-top:12px">
+            <div class="stages">${stages.map((s,i) => `<div class="stage ${i < p.stage ? 'done' : i === p.stage ? 'active' : ''}" onclick="setStage('${id}',${i})">${s}</div>`).join('')}</div>
+        </div>
         <div class="summary-grid" style="margin-top:12px">
             <div class="summary-card"><div class="label">Договор</div><div class="value">${fmt(p.sum)}</div></div>
             <div class="summary-card"><div class="label">Оплачено</div><div class="value income">${fmt(p.paid)}</div></div>
             <div class="summary-card"><div class="label">Расходы</div><div class="value expense">${fmt(tE)}</div></div>
-            <div class="summary-card"><div class="label">Прибыль</div><div class="value ${p.paid-tE>=0?'income':'expense'}">${fmt(p.paid-tE)}</div></div>
+            <div class="summary-card"><div class="label">Прибыль</div><div class="value ${p.paid - tE >= 0 ? 'income' : 'expense'}">${fmt(p.paid - tE)}</div></div>
         </div>
-        <div class="progress-bar"><div class="fill" style="width:${Math.min(100,p.sum?p.paid/p.sum*100:0)}%;background:var(--green)"></div></div>
+        <div class="progress-bar"><div class="fill" style="width:${Math.min(100, p.sum ? p.paid / p.sum * 100 : 0)}%;background:var(--green)"></div></div>
         <div class="btn-row" style="margin-top:12px">
             <button class="btn btn-secondary" onclick="editProject('${id}')">✏️ Редактировать</button>
             <button class="btn btn-secondary" onclick="setProjStatus('${id}','active')">♻️ В работу</button>
@@ -472,245 +580,434 @@ function viewProject(id){
     openModal('view');
 }
 
-async function setProjStatus(id,s){
-    const p=D.projects.find(x=>x.id===id);
-    if(p){p.status=s;p.ts=now();if(await saveCloud()){closeModal('view');render();toast('✅');}}
-}
-
-async function setStage(id,s){
-    const p=D.projects.find(x=>x.id===id);
-    if(p){p.stage=s;p.ts=now();if(await saveCloud())viewProject(id);}
-}
-
-// === INCOME ===
-async function saveIncome(){
-    const projectId=document.getElementById('incomeProject').value;
-    const amount=parseFloat(document.getElementById('incomeAmount').value)||0;
-    if(!projectId||!amount)return toast('❌');
-    D.income.push({
-        id:'Д'+Date.now(),
-        projectId,
-        amount,
-        type:document.getElementById('incomeType').value,
-        method:document.getElementById('incomeMethod').value,
-        note:document.getElementById('incomeNote').value,
-        date:today(),
-        author:document.getElementById('incomeAuthor').value.trim(),
-        ts:now()
-    });
-    if(await saveCloud()){document.getElementById('incomeAmount').value='';document.getElementById('incomeNote').value='';render();toast('✅');}
-}
-
-async function archiveIncome(id){
-    const who=prompt('Кто архивирует?');if(!who)return;
-    const i=D.income.find(x=>x.id===id);
-    if(i){i._archived=true;i._archivedBy=who;i._archivedAt=now();i.ts=now();if(await saveCloud()){render();toast('📦');}}
-}
-async function restoreIncome(id){const i=D.income.find(x=>x.id===id);if(i){i._archived=false;i.ts=now();if(await saveCloud()){render();toast('♻️');}}}
-
-// === EXPENSE ===
-async function saveExpense(){
-    const amount=parseFloat(document.getElementById('expenseAmount').value)||0;
-    if(!amount)return toast('❌');
-    D.expenses.push({
-        id:'Р'+Date.now(),
-        projectId:document.getElementById('expenseProject').value,
-        category:document.getElementById('expenseCategory').value,
-        amount,
-        method:document.getElementById('expenseMethod').value,
-        desc:document.getElementById('expenseDesc').value,
-        photo,
-        date:today(),
-        author:document.getElementById('expenseAuthor').value.trim(),
-        ts:now()
-    });
-    if(await saveCloud()){
-        document.getElementById('expenseAmount').value='';
-        document.getElementById('expenseDesc').value='';
-        document.getElementById('expensePhoto').value='';
-        document.getElementById('photoPreview').style.display='none';
-        photo=null;
-        render();toast('✅');
+async function setProjStatus(id, status) {
+    const p = D.projects.find(x => x.id === id);
+    if(p) {
+        p.status = status;
+        p._deleted = false;
+        p.ts = now();
+        if(await saveCloud()) { closeModal('view'); render(); toast('✅'); }
     }
 }
 
-async function archiveExpense(id){
-    const who=prompt('Кто архивирует?');if(!who)return;
-    const e=D.expenses.find(x=>x.id===id);
-    if(e){e._archived=true;e._archivedBy=who;e._archivedAt=now();e.ts=now();if(await saveCloud()){render();toast('📦');}}
+async function deleteProject(id) {
+    if(!confirm('Удалить проект?')) return;
+    const p = D.projects.find(x => x.id === id);
+    if(p) {
+        p._deleted = true;
+        p._deletedAt = now();
+        p.ts = now();
+        if(await saveCloud()) { render(); toast('🗑'); }
+    }
 }
-async function restoreExpense(id){const e=D.expenses.find(x=>x.id===id);if(e){e._archived=false;e.ts=now();if(await saveCloud()){render();toast('♻️');}}}
 
-// === ASSETS ===
-function openAddAsset(){
-    document.getElementById('assetAuthor').value='';
-    document.getElementById('newAssetName').value='';
-    document.getElementById('newAssetQty').value='';
-    document.getElementById('newAssetCost').value='';
+async function setStage(id, stage) {
+    const p = D.projects.find(x => x.id === id);
+    if(p) {
+        p.stage = stage;
+        p.ts = now();
+        if(await saveCloud()) viewProject(id);
+    }
+}
+
+// === ДОХОДЫ ===
+async function saveIncome() {
+    const projectId = document.getElementById('incomeProject').value;
+    const amount = parseFloat(document.getElementById('incomeAmount').value) || 0;
+    if(!projectId || !amount) return toast('❌ Выберите проект и сумму');
+    
+    D.income.push({
+        id: 'Д' + Date.now(),
+        projectId,
+        amount,
+        type: document.getElementById('incomeType').value,
+        method: document.getElementById('incomeMethod').value,
+        note: document.getElementById('incomeNote').value,
+        date: today(),
+        author: document.getElementById('incomeAuthor').value.trim(),
+        ts: now()
+    });
+    
+    if(await saveCloud()) {
+        document.getElementById('incomeAmount').value = '';
+        document.getElementById('incomeNote').value = '';
+        render();
+        toast('✅');
+    }
+}
+
+async function archiveIncome(id) {
+    const who = prompt('Кто архивирует?');
+    if(!who) return;
+    const i = D.income.find(x => x.id === id);
+    if(i) {
+        i._archived = true;
+        i._archivedBy = who;
+        i._archivedAt = now();
+        i.ts = now();
+        if(await saveCloud()) { render(); toast('📦'); }
+    }
+}
+
+async function deleteIncome(id) {
+    if(!confirm('Удалить запись?')) return;
+    const i = D.income.find(x => x.id === id);
+    if(i) {
+        i._deleted = true;
+        i._deletedAt = now();
+        i.ts = now();
+        if(await saveCloud()) { render(); toast('🗑'); }
+    }
+}
+
+async function restoreIncome(id) {
+    const i = D.income.find(x => x.id === id);
+    if(i) {
+        i._archived = false;
+        i._deleted = false;
+        i.ts = now();
+        if(await saveCloud()) { render(); toast('♻️'); }
+    }
+}
+
+// === РАСХОДЫ ===
+async function saveExpense() {
+    const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+    if(!amount) return toast('❌ Укажите сумму');
+    
+    D.expenses.push({
+        id: 'Р' + Date.now(),
+        projectId: document.getElementById('expenseProject').value,
+        category: document.getElementById('expenseCategory').value,
+        amount,
+        method: document.getElementById('expenseMethod').value,
+        desc: document.getElementById('expenseDesc').value,
+        photo,
+        date: today(),
+        author: document.getElementById('expenseAuthor').value.trim(),
+        ts: now()
+    });
+    
+    if(await saveCloud()) {
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseDesc').value = '';
+        document.getElementById('expensePhoto').value = '';
+        document.getElementById('photoPreview').style.display = 'none';
+        photo = null;
+        render();
+        toast('✅');
+    }
+}
+
+async function archiveExpense(id) {
+    const who = prompt('Кто архивирует?');
+    if(!who) return;
+    const e = D.expenses.find(x => x.id === id);
+    if(e) {
+        e._archived = true;
+        e._archivedBy = who;
+        e._archivedAt = now();
+        e.ts = now();
+        if(await saveCloud()) { render(); toast('📦'); }
+    }
+}
+
+async function deleteExpense(id) {
+    if(!confirm('Удалить запись?')) return;
+    const e = D.expenses.find(x => x.id === id);
+    if(e) {
+        e._deleted = true;
+        e._deletedAt = now();
+        e.ts = now();
+        if(await saveCloud()) { render(); toast('🗑'); }
+    }
+}
+
+async function restoreExpense(id) {
+    const e = D.expenses.find(x => x.id === id);
+    if(e) {
+        e._archived = false;
+        e._deleted = false;
+        e.ts = now();
+        if(await saveCloud()) { render(); toast('♻️'); }
+    }
+}
+
+// === СКЛАД ===
+function openAddAsset() {
+    ['assetAuthor', 'newAssetName', 'newAssetQty', 'newAssetCost'].forEach(id => document.getElementById(id).value = '');
     openModal('asset');
 }
-async function addAsset(){
-    const name=document.getElementById('newAssetName').value.trim();
-    const qty=parseFloat(document.getElementById('newAssetQty').value)||0;
-    const cost=parseFloat(document.getElementById('newAssetCost').value)||0;
-    if(!name||!qty||!cost)return toast('❌');
-    const unit=document.getElementById('newAssetUnit').value;
-    const ex=D.assets.find(a=>a.name.toLowerCase()===name.toLowerCase()&&a.unit===unit);
-    if(ex){ex.qty+=qty;ex.totalCost+=cost;ex.pricePerUnit=ex.totalCost/ex.qty;ex.ts=now();}
-    else{D.assets.push({id:'А'+Date.now(),name,qty,unit,pricePerUnit:cost/qty,totalCost:cost,author:document.getElementById('assetAuthor').value.trim(),ts:now()});}
-    if(await saveCloud()){closeModal('asset');render();toast('✅');}
+
+async function addAsset() {
+    const name = document.getElementById('newAssetName').value.trim();
+    const qty = parseFloat(document.getElementById('newAssetQty').value) || 0;
+    const cost = parseFloat(document.getElementById('newAssetCost').value) || 0;
+    if(!name || !qty || !cost) return toast('❌ Заполните все поля');
+    
+    const unit = document.getElementById('newAssetUnit').value;
+    const existing = D.assets.find(a => a.name.toLowerCase() === name.toLowerCase() && a.unit === unit);
+    
+    if(existing) {
+        existing.qty += qty;
+        existing.totalCost += cost;
+        existing.pricePerUnit = existing.totalCost / existing.qty;
+        existing.ts = now();
+    } else {
+        D.assets.push({
+            id: 'А' + Date.now(),
+            name, qty, unit,
+            pricePerUnit: cost / qty,
+            totalCost: cost,
+            author: document.getElementById('assetAuthor').value.trim(),
+            ts: now()
+        });
+    }
+    
+    if(await saveCloud()) { closeModal('asset'); render(); toast('✅'); }
 }
-function openUseAsset(){
-    document.getElementById('useAssetSelect').innerHTML=D.assets.filter(a=>a.qty>0).map(a=>`<option value="${a.id}">${a.name} (${a.qty} ${a.unit})</option>`).join('')||'<option>Нет</option>';
-    document.getElementById('useAssetProject').innerHTML=D.projects.filter(p=>p.status==='active').map(p=>`<option value="${p.id}">${p.name}</option>`).join('')||'<option>Нет</option>';
-    document.getElementById('useAssetAuthor').value='';
-    document.getElementById('useAssetQty').value='';
+
+function openUseAsset() {
+    const assets = D.assets.filter(a => a.qty > 0);
+    const projects = D.projects.filter(p => p.status === 'active');
+    document.getElementById('useAssetSelect').innerHTML = assets.map(a => `<option value="${a.id}">${a.name} (${a.qty} ${a.unit})</option>`).join('') || '<option>Нет материалов</option>';
+    document.getElementById('useAssetProject').innerHTML = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('') || '<option>Нет проектов</option>';
+    ['useAssetAuthor', 'useAssetQty'].forEach(id => document.getElementById(id).value = '');
     openModal('use');
 }
-async function useAsset(){
-    const aId=document.getElementById('useAssetSelect').value;
-    const qty=parseFloat(document.getElementById('useAssetQty').value)||0;
-    const a=D.assets.find(x=>x.id===aId);
-    if(!a||qty<=0||qty>a.qty)return toast('❌');
-    const cost=a.pricePerUnit*qty;
-    a.qty-=qty;a.totalCost=a.qty*a.pricePerUnit;a.ts=now();
-    D.expenses.push({id:'Р'+Date.now(),projectId:document.getElementById('useAssetProject').value,category:'Со склада',amount:cost,desc:`${a.name} x${qty} ${a.unit}`,date:today(),author:document.getElementById('useAssetAuthor').value.trim(),ts:now()});
-    if(await saveCloud()){closeModal('use');render();toast('✅');}
-}
 
-// === RENDER ===
-function render(){renderSelects();renderHome();renderProjects();renderIncome();renderExpenses();renderAssets();renderAnalytics();}
-
-function renderSelects(){
-    const active=D.projects.filter(p=>p.status==='active');
-    const opts=active.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-    document.getElementById('incomeProject').innerHTML=opts||'<option value="">Нет проектов</option>';
-    document.getElementById('expenseProject').innerHTML='<option value="Общие">Общие</option>'+opts;
-}
-
-function renderHome(){
-    const aI=D.income.filter(i=>!i._archived);
-    const aE=D.expenses.filter(e=>!e._archived);
-    const tI=aI.reduce((s,i)=>s+i.amount,0);
-    const tE=aE.reduce((s,e)=>s+e.amount,0);
-    const tA=D.assets.reduce((s,a)=>s+(a.totalCost||0),0);
-    document.getElementById('homeIncome').textContent=fmt(tI);
-    document.getElementById('homeExpense').textContent=fmt(tE);
-    document.getElementById('homeProfit').textContent=fmt(tI-tE);
-    document.getElementById('homeAssets').textContent=fmt(tA);
-    document.getElementById('homeFree').textContent=fmt(tI-tE-tA);
-    const all=[...aI.map(i=>({...i,_t:'i'})),...aE.map(e=>({...e,_t:'e'}))].sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).slice(0,5);
-    document.getElementById('recentOps').innerHTML=all.length?all.map(o=>{
-        if(o._t==='i'){const p=D.projects.find(x=>x.id===o.projectId);return`<div class="list-item"><div class="row"><div><div class="title">${p?p.name:o.projectId}</div><div class="subtitle">${fmtD(o.date)} • ${o.type}</div>${o.author?`<div class="author">👤 ${o.author}</div>`:''}</div><div class="amount income">+${fmt(o.amount)}</div></div></div>`;}
-        return`<div class="list-item"><div class="row"><div><div class="title">${o.category}</div><div class="subtitle">${fmtD(o.date)} • ${o.desc||''}</div>${o.author?`<div class="author">👤 ${o.author}</div>`:''}</div><div class="amount expense">-${fmt(o.amount)}</div></div></div>`;
-    }).join(''):'<div class="empty"><span>📭</span>Пусто</div>';
-}
-
-function renderProjects(){
-    const list=D.projects.filter(p=>p.status===projF);
-    const st=['Замер','Дизайн','Произв.','Доставка','Монтаж','Готово'];
-    document.getElementById('projectsList').innerHTML=list.length?list.map(p=>{
-        const pc=p.sum?Math.min(100,Math.round(p.paid/p.sum*100)):0;
-        const rest=p.sum-p.paid;
-        return`<div class="list-item">
-            <div class="row"><div class="title">${p.name}</div></div>
-            <div class="subtitle">${p.client||'—'} • ${fmtD(p.dateStart)}</div>
-            ${p.address?`<div class="subtitle">📍 ${p.address}</div>`:''}
-            ${p.author?`<div class="author">👤 ${p.author}</div>`:''}
-            <div class="project-money">
-                <div class="money-box white">💰 ${fmt(p.sum)}</div>
-                <div class="money-box white">✅ ${fmt(p.paid)}</div>
-                <div class="money-box yellow">⏳ ${fmt(rest)}</div>
-            </div>
-            <div class="stages">${st.map((s,i)=>`<div class="stage ${i<(p.stage||0)?'done':i===(p.stage||0)?'active':''}">${s}</div>`).join('')}</div>
-            <div class="progress-bar"><div class="fill" style="width:${pc}%;background:var(--green)"></div></div>
-            <div class="actions">
-                <button class="action-btn" onclick="viewProject('${p.id}')">👁</button>
-                <button class="action-btn" onclick="editProject('${p.id}')">✏️</button>
-                ${p.status==='active'?`<button class="action-btn" onclick="setProjStatus('${p.id}','done')">✅</button>`:''}
-                ${p.status==='done'?`<button class="action-btn" onclick="setProjStatus('${p.id}','active')">♻️</button><button class="action-btn" onclick="setProjStatus('${p.id}','archive')">📦</button>`:''}
-                ${p.status==='archive'?`<button class="action-btn" onclick="setProjStatus('${p.id}','active')">♻️</button>`:''}
-            </div>
-        </div>`;
-    }).join(''):'<div class="empty"><span>📋</span>Пусто</div>';
-}
-
-function renderIncome(){
-    const active=D.income.filter(i=>!i._archived).sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
-    const archived=D.income.filter(i=>i._archived).sort((a,b)=>(b._archivedAt||'').localeCompare(a._archivedAt||''));
-    const list=incF==='active'?active:archived;
-    document.getElementById('incomeCount').textContent=`(${active.length})`;
-    document.getElementById('incomeList').innerHTML=list.length?list.map(i=>{
-        const p=D.projects.find(x=>x.id===i.projectId);
-        const arch=i._archived;
-        return`<div class="list-item ${arch?'archived':''}">
-            <div class="row"><div><div class="title">${p?p.name:i.projectId}</div><div class="subtitle">${fmtD(i.date)} • ${i.type} • ${i.method||''}</div>${i.author?`<div class="author">👤 ${i.author}</div>`:''}</div><div class="amount income">+${fmt(i.amount)}</div></div>
-            ${i.note?`<div class="subtitle">💬 ${i.note}</div>`:''}
-            ${arch?`<div class="subtitle" style="color:var(--red)">🗑 ${i._archivedBy||''} • ${fmtD(i._archivedAt)}</div>`:''}
-            <div class="actions">${arch?`<button class="action-btn success" onclick="restoreIncome('${i.id}')">♻️</button>`:`<button class="action-btn danger" onclick="archiveIncome('${i.id}')">🗑</button>`}</div>
-        </div>`;
-    }).join(''):'<div class="empty"><span>📭</span>Пусто</div>';
-}
-
-function renderExpenses(){
-    const active=D.expenses.filter(e=>!e._archived).sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
-    const archived=D.expenses.filter(e=>e._archived).sort((a,b)=>(b._archivedAt||'').localeCompare(a._archivedAt||''));
-    const list=expF==='active'?active:archived;
-    document.getElementById('expenseCount').textContent=`(${active.length})`;
-    document.getElementById('expenseList').innerHTML=list.length?list.map(e=>{
-        const arch=e._archived;
-        return`<div class="list-item ${arch?'archived':''}">
-            <div class="row"><div><div class="title">${e.category}</div><div class="subtitle">${fmtD(e.date)} • ${e.projectId} • ${e.method||''}</div>${e.author?`<div class="author">👤 ${e.author}</div>`:''}</div><div class="amount expense">-${fmt(e.amount)}</div></div>
-            ${e.desc?`<div class="subtitle">📝 ${e.desc}</div>`:''}
-            ${e.photo?`<img src="${e.photo}" class="photo-thumb" onclick="viewPhoto('${e.id}')">`:''}
-            ${arch?`<div class="subtitle" style="color:var(--red)">🗑 ${e._archivedBy||''} • ${fmtD(e._archivedAt)}</div>`:''}
-            <div class="actions">${arch?`<button class="action-btn success" onclick="restoreExpense('${e.id}')">♻️</button>`:`<button class="action-btn danger" onclick="archiveExpense('${e.id}')">🗑</button>`}</div>
-        </div>`;
-    }).join(''):'<div class="empty"><span>📭</span>Пусто</div>';
-}
-
-function renderAssets(){
-    const aa=D.assets.filter(a=>a.qty>0);
-    document.getElementById('totalAssets').textContent=fmt(aa.reduce((s,a)=>s+(a.totalCost||0),0));
-    document.getElementById('assetsList').innerHTML=aa.length?aa.map(a=>`<div class="list-item"><div class="row"><div><div class="title">${a.name}</div><div class="subtitle">${fmt(a.pricePerUnit)} за ${a.unit}</div>${a.author?`<div class="author">👤 ${a.author}</div>`:''}</div><div><div class="amount assets">${a.qty} ${a.unit}</div><div class="subtitle">${fmt(a.totalCost)}</div></div></div></div>`).join(''):'<div class="empty"><span>📦</span>Пусто</div>';
-}
-
-function renderAnalytics(){
-    const f=document.getElementById('dateFrom').value;
-    const t=document.getElementById('dateTo').value;
+async function useAsset() {
+    const assetId = document.getElementById('useAssetSelect').value;
+    const qty = parseFloat(document.getElementById('useAssetQty').value) || 0;
+    const asset = D.assets.find(x => x.id === assetId);
+    if(!asset || qty <= 0 || qty > asset.qty) return toast('❌ Проверьте количество');
     
-    // Все активные доходы и расходы
-    const allInc=D.income.filter(i=>!i._archived);
-    const allExp=D.expenses.filter(e=>!e._archived);
+    const cost = asset.pricePerUnit * qty;
+    asset.qty -= qty;
+    asset.totalCost = asset.qty * asset.pricePerUnit;
+    asset.ts = now();
     
-    // Фильтр по дате
-    const inc=allInc.filter(i=>{
-        const d=getDate(i);
-        if(!d)return true; // если нет даты - включаем
-        return(!f||d>=f)&&(!t||d<=t);
-    });
-    const exp=allExp.filter(e=>{
-        const d=getDate(e);
-        if(!d)return true;
-        return(!f||d>=f)&&(!t||d<=t);
+    D.expenses.push({
+        id: 'Р' + Date.now(),
+        projectId: document.getElementById('useAssetProject').value,
+        category: 'Со склада',
+        amount: cost,
+        desc: `${asset.name} x${qty} ${asset.unit}`,
+        date: today(),
+        author: document.getElementById('useAssetAuthor').value.trim(),
+        ts: now()
     });
     
-    const tI=inc.reduce((s,i)=>s+i.amount,0);
-    const tE=exp.reduce((s,e)=>s+e.amount,0);
-    const tA=D.assets.reduce((s,a)=>s+(a.totalCost||0),0);
-    
-    document.getElementById('statIncome').textContent=fmt(tI);
-    document.getElementById('statExpense').textContent=fmt(tE);
-    document.getElementById('statFree').textContent=fmt(tI-tE-tA);
-    
-    const bc={};
-    exp.forEach(e=>{bc[e.category]=(bc[e.category]||0)+e.amount;});
-    const sc=Object.entries(bc).sort((a,b)=>b[1]-a[1]).slice(0,10);
-    document.getElementById('categoryStats').innerHTML=sc.length?sc.map(([c,s])=>`<div class="list-item"><div class="row"><div class="title">${c}</div><div class="amount expense">${fmt(s)}</div></div><div class="progress-bar"><div class="fill" style="width:${tE?Math.min(100,Math.round(s/tE*100)):0}%;background:var(--red)"></div></div></div>`).join(''):'<p style="color:var(--text2)">Нет данных</p>';
+    if(await saveCloud()) { closeModal('use'); render(); toast('✅'); }
 }
 
-function exportBackup(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));a.download='backup_'+today()+'.json';a.click();toast('💾');}
-function importBackup(inp){if(!inp.files[0])return;const r=new FileReader();r.onload=async e=>{try{const d=JSON.parse(e.target.result);if(d.projects){D=d;if(await saveCloud()){render();toast('✅');}}}catch{toast('❌');}};r.readAsText(inp.files[0]);inp.value='';}
+// === РЕНДЕР ===
+function render() {
+    renderSelects();
+    renderHome();
+    renderProjects();
+    renderIncome();
+    renderExpenses();
+    renderAssets();
+}
+
+function renderSelects() {
+    const active = D.projects.filter(p => p.status === 'active' && !p._deleted);
+    const opts = active.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    document.getElementById('incomeProject').innerHTML = opts || '<option value="">Нет проектов</option>';
+    document.getElementById('expenseProject').innerHTML = '<option value="Общие">Общие расходы</option>' + opts;
+}
+
+function renderHome() {
+    const periodStart = getPeriodStart();
+    const periodEnd = getPeriodEnd();
+    const activeIncome = D.income.filter(i => !i._archived && !i._deleted && getDate(i) >= periodStart && getDate(i) <= periodEnd);
+    const activeExpense = D.expenses.filter(e => !e._archived && !e._deleted && getDate(e) >= periodStart && getDate(e) <= periodEnd);
+    
+    const totalIncome = activeIncome.reduce((s, i) => s + i.amount, 0);
+    const totalExpense = activeExpense.reduce((s, e) => s + e.amount, 0);
+    const totalAssets = D.assets.reduce((s, a) => s + (a.totalCost || 0), 0);
+    
+    document.getElementById('homeIncome').textContent = fmt(totalIncome);
+    document.getElementById('homeExpense').textContent = fmt(totalExpense);
+    document.getElementById('homeProfit').textContent = fmt(totalIncome - totalExpense);
+    document.getElementById('homeAssets').textContent = fmt(totalAssets);
+    document.getElementById('homeFree').textContent = fmt(totalIncome - totalExpense - totalAssets);
+    
+    // Категории расходов
+    const cats = {};
+    activeExpense.forEach(e => { cats[e.category] = (cats[e.category] || 0) + e.amount; });
+    const sortedCats = Object.entries(cats).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    document.getElementById('catStats').innerHTML = sortedCats.length 
+        ? sortedCats.map(([cat, sum]) => `
+            <div class="list-item">
+                <div class="row"><div class="title">${cat}</div><div class="amount expense">${fmt(sum)}</div></div>
+                <div class="progress-bar"><div class="fill" style="width:${totalExpense ? Math.min(100, sum / totalExpense * 100) : 0}%;background:var(--red)"></div></div>
+            </div>`).join('')
+        : '<p style="color:var(--text2);text-align:center">Нет данных</p>';
+    
+    // Последние операции
+    const allOps = [
+        ...activeIncome.map(i => ({...i, _type: 'income'})),
+        ...activeExpense.map(e => ({...e, _type: 'expense'}))
+    ].sort((a, b) => (b.ts || '').localeCompare(a.ts || '')).slice(0, 5);
+    
+    document.getElementById('recentOps').innerHTML = allOps.length
+        ? allOps.map(op => {
+            if(op._type === 'income') {
+                const proj = D.projects.find(p => p.id === op.projectId);
+                return `<div class="list-item"><div class="row"><div><div class="title">${proj ? proj.name : op.projectId}</div><div class="subtitle">${fmtD(op.date)} • ${op.type}</div>${op.author ? `<div class="author">👤 ${op.author}</div>` : ''}</div><div class="amount income">+${fmt(op.amount)}</div></div></div>`;
+            } else {
+                return `<div class="list-item"><div class="row"><div><div class="title">${op.category}</div><div class="subtitle">${fmtD(op.date)}${op.desc ? ' • ' + op.desc : ''}</div>${op.author ? `<div class="author">👤 ${op.author}</div>` : ''}</div><div class="amount expense">-${fmt(op.amount)}</div></div></div>`;
+            }
+        }).join('')
+        : '<div class="empty"><span>📭</span>Пусто</div>';
+}
+
+function renderProjects() {
+    let list;
+    if(projF === 'deleted') {
+        list = D.projects.filter(p => p._deleted);
+    } else {
+        list = D.projects.filter(p => p.status === projF && !p._deleted);
+    }
+    
+    const stages = ['Замер', 'Дизайн', 'Произв.', 'Доставка', 'Монтаж', 'Готово'];
+    
+    document.getElementById('projectsList').innerHTML = list.length
+        ? list.map(p => {
+            const percent = p.sum ? Math.min(100, Math.round(p.paid / p.sum * 100)) : 0;
+            const rest = p.sum - p.paid;
+            const isDel = p._deleted;
+            
+            return `<div class="list-item ${isDel ? 'deleted' : ''}">
+                <div class="row"><div class="title">${p.name}</div></div>
+                <div class="subtitle">${p.client || '—'} • ${fmtD(p.dateStart)}</div>
+                ${p.address ? `<div class="subtitle">📍 ${p.address}</div>` : ''}
+                ${p.author ? `<div class="author">👤 ${p.author}</div>` : ''}
+                ${isDel ? `<div class="subtitle" style="color:var(--red)">🗑 Удалён ${fmtD(p._deletedAt)}</div>` : `
+                    <div class="project-money">
+                        <div class="money-box white">💰 ${fmt(p.sum)}</div>
+                        <div class="money-box white">✅ ${fmt(p.paid)}</div>
+                        <div class="money-box yellow">⏳ ${fmt(rest)}</div>
+                    </div>
+                    <div class="stages">${stages.map((s, i) => `<div class="stage ${i < (p.stage || 0) ? 'done' : i === (p.stage || 0) ? 'active' : ''}">${s}</div>`).join('')}</div>
+                    <div class="progress-bar"><div class="fill" style="width:${percent}%;background:var(--green)"></div></div>
+                `}
+                <div class="actions">
+                    ${isDel ? `<button class="action-btn success" onclick="setProjStatus('${p.id}','active')">♻️ Восстановить</button>` : `
+                        <button class="action-btn" onclick="viewProject('${p.id}')">👁</button>
+                        <button class="action-btn" onclick="editProject('${p.id}')">✏️</button>
+                        ${p.status === 'active' ? `<button class="action-btn" onclick="setProjStatus('${p.id}','done')">✅</button>` : ''}
+                        ${p.status === 'done' ? `<button class="action-btn" onclick="setProjStatus('${p.id}','active')">♻️</button><button class="action-btn" onclick="setProjStatus('${p.id}','archive')">📦</button>` : ''}
+                        ${p.status === 'archive' ? `<button class="action-btn" onclick="setProjStatus('${p.id}','active')">♻️</button>` : ''}
+                        <button class="action-btn danger" onclick="deleteProject('${p.id}')">🗑</button>
+                    `}
+                </div>
+            </div>`;
+        }).join('')
+        : '<div class="empty"><span>📋</span>Нет проектов</div>';
+}
+
+function renderIncome() {
+    let list;
+    if(incF === 'deleted') list = D.income.filter(i => i._deleted).sort((a, b) => (b._deletedAt || '').localeCompare(a._deletedAt || ''));
+    else if(incF === 'archived') list = D.income.filter(i => i._archived && !i._deleted).sort((a, b) => (b._archivedAt || '').localeCompare(a._archivedAt || ''));
+    else list = D.income.filter(i => !i._archived && !i._deleted).sort((a, b) => (b.ts || '').localeCompare(a.ts || ''));
+    
+    document.getElementById('incomeList').innerHTML = list.length
+        ? list.map(i => {
+            const proj = D.projects.find(p => p.id === i.projectId);
+            const isDel = i._deleted, isArch = i._archived;
+            return `<div class="list-item ${isDel ? 'deleted' : isArch ? 'archived' : ''}">
+                <div class="row"><div><div class="title">${proj ? proj.name : i.projectId}</div><div class="subtitle">${fmtD(i.date)} • ${i.type} • ${i.method || ''}</div>${i.author ? `<div class="author">👤 ${i.author}</div>` : ''}</div><div class="amount income">+${fmt(i.amount)}</div></div>
+                ${i.note ? `<div class="subtitle">💬 ${i.note}</div>` : ''}
+                ${isDel ? `<div class="subtitle" style="color:var(--red)">🗑 Удалено ${fmtD(i._deletedAt)}</div>` : ''}
+                ${isArch && !isDel ? `<div class="subtitle" style="color:var(--text2)">📦 ${i._archivedBy || ''} • ${fmtD(i._archivedAt)}</div>` : ''}
+                <div class="actions">
+                    ${isDel || isArch ? `<button class="action-btn success" onclick="restoreIncome('${i.id}')">♻️</button>` : `
+                        <button class="action-btn" onclick="archiveIncome('${i.id}')">📦</button>
+                        <button class="action-btn danger" onclick="deleteIncome('${i.id}')">🗑</button>
+                    `}
+                </div>
+            </div>`;
+        }).join('')
+        : '<div class="empty"><span>📭</span>Пусто</div>';
+}
+
+function renderExpenses() {
+    let list;
+    if(expF === 'deleted') list = D.expenses.filter(e => e._deleted).sort((a, b) => (b._deletedAt || '').localeCompare(a._deletedAt || ''));
+    else if(expF === 'archived') list = D.expenses.filter(e => e._archived && !e._deleted).sort((a, b) => (b._archivedAt || '').localeCompare(a._archivedAt || ''));
+    else list = D.expenses.filter(e => !e._archived && !e._deleted).sort((a, b) => (b.ts || '').localeCompare(a.ts || ''));
+    
+    document.getElementById('expenseList').innerHTML = list.length
+        ? list.map(e => {
+            const isDel = e._deleted, isArch = e._archived;
+            return `<div class="list-item ${isDel ? 'deleted' : isArch ? 'archived' : ''}">
+                <div class="row"><div><div class="title">${e.category}</div><div class="subtitle">${fmtD(e.date)} • ${e.projectId} • ${e.method || ''}</div>${e.author ? `<div class="author">👤 ${e.author}</div>` : ''}</div><div class="amount expense">-${fmt(e.amount)}</div></div>
+                ${e.desc ? `<div class="subtitle">📝 ${e.desc}</div>` : ''}
+                ${e.photo ? `<img src="${e.photo}" class="photo-thumb" onclick="viewPhoto('${e.id}')">` : ''}
+                ${isDel ? `<div class="subtitle" style="color:var(--red)">🗑 Удалено ${fmtD(e._deletedAt)}</div>` : ''}
+                ${isArch && !isDel ? `<div class="subtitle" style="color:var(--text2)">📦 ${e._archivedBy || ''} • ${fmtD(e._archivedAt)}</div>` : ''}
+                <div class="actions">
+                    ${isDel || isArch ? `<button class="action-btn success" onclick="restoreExpense('${e.id}')">♻️</button>` : `
+                        <button class="action-btn" onclick="archiveExpense('${e.id}')">📦</button>
+                        <button class="action-btn danger" onclick="deleteExpense('${e.id}')">🗑</button>
+                    `}
+                </div>
+            </div>`;
+        }).join('')
+        : '<div class="empty"><span>📭</span>Пусто</div>';
+}
+
+function renderAssets() {
+    const activeAssets = D.assets.filter(a => a.qty > 0);
+    document.getElementById('totalAssets').textContent = fmt(activeAssets.reduce((s, a) => s + (a.totalCost || 0), 0));
+    document.getElementById('assetsList').innerHTML = activeAssets.length
+        ? activeAssets.map(a => `
+            <div class="list-item">
+                <div class="row">
+                    <div><div class="title">${a.name}</div><div class="subtitle">${fmt(a.pricePerUnit)} за ${a.unit}</div>${a.author ? `<div class="author">👤 ${a.author}</div>` : ''}</div>
+                    <div><div class="amount assets">${a.qty} ${a.unit}</div><div class="subtitle">${fmt(a.totalCost)}</div></div>
+                </div>
+            </div>`).join('')
+        : '<div class="empty"><span>📦</span>Склад пуст</div>';
+}
+
+// === БЭКАП ===
+function exportBackup() {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(D, null, 2)], {type: 'application/json'}));
+    a.download = 'ideal_mebel_backup_' + today() + '.json';
+    a.click();
+    toast('💾 Бэкап сохранён');
+}
+
+function importBackup(input) {
+    if(!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = async e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if(data.projects) {
+                D = data;
+                if(await saveCloud()) { render(); toast('✅ Данные загружены'); }
+            }
+        } catch { toast('❌ Ошибка чтения файла'); }
+    };
+    reader.readAsText(input.files[0]);
+    input.value = '';
+}
+
+// === ЗАПУСК ===
+async function init() {
+    loadLocal();
+    fix();
+    render();
+    await loadCloud();
+    setInterval(loadCloud, 10000);
+}
 
 init();
 </script>
