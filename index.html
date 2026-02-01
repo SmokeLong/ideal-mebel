@@ -821,8 +821,23 @@ function renderSelects() {
 function renderHome() {
     const periodStart = getPeriodStart();
     const periodEnd = getPeriodEnd();
-    const activeIncome = D.income.filter(i => !i._archived && !i._deleted && getDate(i) >= periodStart && getDate(i) <= periodEnd);
-    const activeExpense = D.expenses.filter(e => !e._archived && !e._deleted && getDate(e) >= periodStart && getDate(e) <= periodEnd);
+    
+    // Фильтруем по периоду
+    const activeIncome = D.income.filter(i => {
+        if(i._archived || i._deleted) return false;
+        if(period === 'all') return true; // Всё время - показываем всё
+        const d = getDate(i);
+        if(!d) return true; // без даты - показываем
+        return d >= periodStart && d <= periodEnd;
+    });
+    
+    const activeExpense = D.expenses.filter(e => {
+        if(e._archived || e._deleted) return false;
+        if(period === 'all') return true;
+        const d = getDate(e);
+        if(!d) return true;
+        return d >= periodStart && d <= periodEnd;
+    });
     
     const totalIncome = activeIncome.reduce((s, i) => s + i.amount, 0);
     const totalExpense = activeExpense.reduce((s, e) => s + e.amount, 0);
