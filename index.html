@@ -353,11 +353,16 @@ function render(){
 }
 
 function renderSelects(){
+    var curInc=$('iProj').value;
+    var curExp=$('eProj').value;
     var opts=D.projects.filter(function(p){return p.status==='active'&&!p._deleted}).map(function(p){return'<option value="'+p.id+'">'+p.name+'</option>'}).join('');
     $('iProj').innerHTML=opts||'<option>Нет проектов</option>';
     $('eProj').innerHTML='<option value="Общие">Общие</option>'+opts;
     $('eiProj').innerHTML=opts||'<option>Нет</option>';
     $('eeProj').innerHTML='<option value="Общие">Общие</option>'+opts;
+    // Восстанавливаем выбор
+    if(curInc)$('iProj').value=curInc;
+    if(curExp)$('eProj').value=curExp;
 }
 
 function renderHome(){
@@ -473,9 +478,12 @@ async function restoreProj(id){var p=D.projects.find(function(x){return x.id===i
 
 // ДОХОДЫ
 async function addInc(){
+    var projId=$('iProj').value;
     var sum=parseFloat($('iSum').value)||0;
+    var type=$('iType').value;
+    var author=$('iAuthor').value;
     if(!sum)return toast('❌');
-    D.income.push({id:'I'+Date.now(),projectId:$('iProj').value,amount:sum,type:$('iType').value,author:$('iAuthor').value,date:today(),ts:now()});
+    D.income.push({id:'I'+Date.now(),projectId:projId,amount:sum,type:type,author:author,date:today(),ts:now()});
     if(await saveCloud()){$('iSum').value='';render();toast('✅')}
 }
 function editInc(id){
@@ -496,9 +504,13 @@ async function restoreInc(id){var i=D.income.find(function(x){return x.id===id})
 
 // РАСХОДЫ
 async function addExp(){
+    var projId=$('eProj').value;
+    var cat=$('eCat').value;
     var sum=parseFloat($('eSum').value)||0;
+    var desc=$('eDesc').value;
+    var author=$('eAuthor').value;
     if(!sum)return toast('❌');
-    D.expenses.push({id:'E'+Date.now(),projectId:$('eProj').value,category:$('eCat').value,amount:sum,desc:$('eDesc').value,author:$('eAuthor').value,date:today(),ts:now()});
+    D.expenses.push({id:'E'+Date.now(),projectId:projId,category:cat,amount:sum,desc:desc,author:author,date:today(),ts:now()});
     if(await saveCloud()){$('eSum').value='';$('eDesc').value='';render();toast('✅')}
 }
 function editExp(id){
