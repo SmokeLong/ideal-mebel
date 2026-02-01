@@ -277,8 +277,8 @@
 <!-- Фото -->
 <div class="modal" id="modalPhoto" onclick="closeModal('photo')"><img id="modalPhotoImg" style="max-width:95%;max-height:90%;border-radius:12px"></div>
 <!-- Редактирование дохода -->
-<div class="modal" id="modalEditIncome"><div class="modal-content">
-    <div class="modal-header"><div class="modal-title">✏️ Редактировать доход</div><button class="modal-close" onclick="closeModal('editIncome')">✕</button></div>
+<div class="modal" id="modalEditincome"><div class="modal-content">
+    <div class="modal-header"><div class="modal-title">✏️ Редактировать доход</div><button class="modal-close" onclick="closeModal('editincome')">✕</button></div>
     <input type="hidden" id="editIncomeId">
     <div class="form-group"><label>Кто записывает</label><input type="text" id="editIncomeAuthor"></div>
     <div class="form-group"><label>Проект</label><select id="editIncomeProject"></select></div>
@@ -292,8 +292,8 @@
     <button class="btn btn-primary" onclick="updateIncome()">✅ Сохранить</button>
 </div></div>
 <!-- Редактирование расхода -->
-<div class="modal" id="modalEditExpense"><div class="modal-content">
-    <div class="modal-header"><div class="modal-title">✏️ Редактировать расход</div><button class="modal-close" onclick="closeModal('editExpense')">✕</button></div>
+<div class="modal" id="modalEditexpense"><div class="modal-content">
+    <div class="modal-header"><div class="modal-title">✏️ Редактировать расход</div><button class="modal-close" onclick="closeModal('editexpense')">✕</button></div>
     <input type="hidden" id="editExpenseId">
     <div class="form-group"><label>Кто записывает</label><input type="text" id="editExpenseAuthor"></div>
     <div class="form-group"><label>Проект</label><select id="editExpenseProject"></select></div>
@@ -450,8 +450,16 @@ function showPanel(name) {
     document.querySelector('.nav-item[onclick*="' + name + '"]').classList.add('active');
 }
 
-function openModal(name) { document.getElementById('modal' + name[0].toUpperCase() + name.slice(1)).classList.add('active'); }
-function closeModal(name) { document.getElementById('modal' + name[0].toUpperCase() + name.slice(1)).classList.remove('active'); }
+function openModal(name) { 
+    const id = 'modal' + name.charAt(0).toUpperCase() + name.slice(1);
+    const el = document.getElementById(id);
+    if(el) el.classList.add('active'); 
+}
+function closeModal(name) { 
+    const id = 'modal' + name.charAt(0).toUpperCase() + name.slice(1);
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('active'); 
+}
 function openSettings() { openModal('settings'); }
 
 function setPeriod(p, btn) {
@@ -730,7 +738,7 @@ function editIncome(id) {
     document.getElementById('editIncomeDate').value = i.date || today();
     document.getElementById('editIncomeNote').value = i.note || '';
     
-    openModal('editIncome');
+    openModal('editincome');
 }
 
 async function updateIncome() {
@@ -750,7 +758,7 @@ async function updateIncome() {
     i.note = document.getElementById('editIncomeNote').value;
     i.ts = now();
     
-    if(await saveCloud()) { closeModal('editIncome'); render(); toast('✅'); }
+    if(await saveCloud()) { closeModal('editincome'); render(); toast('✅'); }
 }
 
 // === РАСХОДЫ ===
@@ -833,7 +841,7 @@ function editExpense(id) {
     document.getElementById('editExpenseDate').value = e.date || today();
     document.getElementById('editExpenseDesc').value = e.desc || '';
     
-    openModal('editExpense');
+    openModal('editexpense');
 }
 
 async function updateExpense() {
@@ -853,7 +861,7 @@ async function updateExpense() {
     e.desc = document.getElementById('editExpenseDesc').value;
     e.ts = now();
     
-    if(await saveCloud()) { closeModal('editExpense'); render(); toast('✅'); }
+    if(await saveCloud()) { closeModal('editexpense'); render(); toast('✅'); }
 }
 
 // === СКЛАД ===
