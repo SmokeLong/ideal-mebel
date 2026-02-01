@@ -77,14 +77,15 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 .empty{text-align:center;padding:30px;color:#999}
 .empty span{font-size:40px;display:block;margin-bottom:10px}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;padding:12px 20px;border-radius:12px;display:none;z-index:300;border:1px solid #333}
+.loader{text-align:center;padding:40px;color:#999}
 </style>
 </head>
 <body>
 <div class="app">
 <div class="header">
 <h1>IDEAL MEBEL</h1>
-<div class="header-sub"><span class="sync-dot" id="dot"></span><span id="status">OK</span></div>
-<div class="header-btns"><button class="header-btn" onclick="sync()">🔄</button><button class="header-btn" onclick="showModal('settings')">⚙️</button></div>
+<div class="header-sub"><span class="sync-dot" id="dot"></span><span id="status">Загрузка...</span></div>
+<div class="header-btns"><button class="header-btn" onclick="loadData()">🔄</button><button class="header-btn" onclick="showModal('settings')">⚙️</button></div>
 </div>
 <div class="content">
 <!-- ГЛАВНАЯ -->
@@ -199,8 +200,9 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 </div></div>
 <div class="modal" id="m-settings"><div class="modal-box">
 <div class="modal-head"><div class="modal-title">Настройки</div><button class="modal-close" onclick="hideModal('settings')">✕</button></div>
-<button class="btn btn-primary" onclick="sync()" style="margin-bottom:10px">🔄 Синхронизировать</button>
+<button class="btn btn-primary" onclick="loadData()" style="margin-bottom:10px">🔄 Обновить данные</button>
 <button class="btn" style="background:#252525;border:1px solid #333" onclick="backup()">💾 Скачать бэкап</button>
+<p style="font-size:11px;color:#999;margin-top:14px;text-align:center">Все данные хранятся в облаке.<br>Локальное хранение отключено.</p>
 </div></div>
 <div class="modal" id="m-editInc"><div class="modal-box">
 <div class="modal-head"><div class="modal-title">Редактировать доход</div><button class="modal-close" onclick="hideModal('editInc')">✕</button></div>
@@ -222,7 +224,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <script>
 var API='https://script.google.com/macros/s/AKfycbwlmez3kvl2aq6oiDCbMRjBuwlyEVjkx0FNexmnU40A81JsMeI9fsmAResAoktYhr_0/exec';
 var D={projects:[],income:[],expenses:[],assets:[]};
-var period='all',projF='active',incF='active',expF='active',syncing=false;
+var period='all',projF='active',incF='active',expF='active',loading=false;
 
 function $(id){return document.getElementById(id)}
 function fmt(n){return(Math.round(n)||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'}
@@ -234,7 +236,13 @@ function go(name){
     document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
     document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active')});
     $('p-'+name).classList.add('active');
-    document.querySelectorAll('.nav-btn').forEach(function(b){if(b.textContent.toLowerCase().indexOf(name.substring(0,3))>-1||name==='home'&&b.textContent.indexOf('Главная')>-1)b.classList.add('active')});
+    var navBtns=document.querySelectorAll('.nav-btn');
+    for(var i=0;i<navBtns.length;i++){
+        var txt=navBtns[i].textContent.toLowerCase();
+        if((name==='home'&&txt.indexOf('главн')>-1)||(name==='projects'&&txt.indexOf('проект')>-1)||(name==='income'&&txt.indexOf('доход')>-1)||(name==='expense'&&txt.indexOf('расход')>-1)||(name==='assets'&&txt.indexOf('склад')>-1)){
+            navBtns[i].classList.add('active');
+        }
+    }
 }
 
 function showModal(name){$('m-'+name).classList.add('active')}
@@ -274,74 +282,65 @@ function getPerStart(){
     return d.toISOString().split('T')[0];
 }
 
-function merge(local,cloud){
-    var map={};
-    (cloud||[]).forEach(function(x){if(x&&x.id)map[x.id]=x});
-    (local||[]).forEach(function(x){
-        if(!x||!x.id)return;
-        if(!map[x.id])map[x.id]=x;
-        else if((x.ts||'')>(map[x.id].ts||''))map[x.id]=x;
-    });
-    return Object.values(map);
+function setStatus(s,t){
+    $('dot').className='sync-dot'+(s==='on'?'':s==='off'?' off':' sync');
+    $('status').textContent=t;
 }
-
-function loadLocal(){
-    try{
-        var s=localStorage.getItem('IM20')||localStorage.getItem('IM19')||localStorage.getItem('IM18')||localStorage.getItem('IM17');
-        if(s)D=JSON.parse(s);
-    }catch(e){}
-}
-function saveLocal(){try{localStorage.setItem('IM20',JSON.stringify(D))}catch(e){}}
 
 function fix(){
     D.projects=D.projects||[];D.income=D.income||[];D.expenses=D.expenses||[];D.assets=D.assets||[];
-    D.projects.forEach(function(p){p.sum=parseFloat(p.sum)||0;p.stage=parseInt(p.stage)||0;p.paid=D.income.filter(function(i){return i.projectId===p.id&&!i._archived&&!i._deleted}).reduce(function(s,i){return s+(parseFloat(i.amount)||0)},0)});
+    D.projects.forEach(function(p){
+        p.sum=parseFloat(p.sum)||0;
+        p.stage=parseInt(p.stage)||0;
+        p.paid=D.income.filter(function(i){return i.projectId===p.id&&!i._archived&&!i._deleted}).reduce(function(s,i){return s+(parseFloat(i.amount)||0)},0);
+    });
     D.income.forEach(function(i){i.amount=parseFloat(i.amount)||0});
     D.expenses.forEach(function(e){e.amount=parseFloat(e.amount)||0});
     D.assets.forEach(function(a){a.qty=parseFloat(a.qty)||0;a.cost=parseFloat(a.cost)||0});
 }
 
-function setSync(s){
-    $('dot').className='sync-dot'+(s==='on'?'':s==='off'?' off':' sync');
-    $('status').textContent=s==='on'?'OK':s==='off'?'Офлайн':'...';
-}
-
-async function loadCloud(){
-    if(syncing)return;syncing=true;setSync('sync');
+// ========== ТОЛЬКО ОБЛАКО ==========
+async function loadData(){
+    if(loading)return;
+    loading=true;
+    setStatus('sync','Загрузка...');
     try{
         var r=await fetch(API+'?action=getData&t='+Date.now());
         var c=await r.json();
         if(c&&c.projects!==undefined){
-            D.projects=merge(D.projects,c.projects);
-            D.income=merge(D.income,c.income);
-            D.expenses=merge(D.expenses,c.expenses);
-            D.assets=merge(D.assets,c.assets);
-            fix();saveLocal();render();setSync('on');
-        }else setSync('off');
-    }catch(e){setSync('off')}
-    syncing=false;
-}
-
-async function saveCloud(){
-    if(syncing)return false;syncing=true;setSync('sync');
-    try{
-        var r1=await fetch(API+'?action=getData&t='+Date.now());
-        var c=await r1.json();
-        if(c&&c.projects!==undefined){
-            D.projects=merge(D.projects,c.projects);
-            D.income=merge(D.income,c.income);
-            D.expenses=merge(D.expenses,c.expenses);
-            D.assets=merge(D.assets,c.assets);
+            D=c;
+            fix();
+            render();
+            setStatus('on','OK');
+        }else{
+            setStatus('off','Ошибка данных');
         }
-        fix();
-        var r2=await fetch(API+'?action=saveData',{method:'POST',body:JSON.stringify(D)});
-        var res=await r2.json();
-        if(res.success){saveLocal();setSync('on');syncing=false;return true}
-    }catch(e){}
-    setSync('off');syncing=false;return false;
+    }catch(e){
+        setStatus('off','Нет связи');
+        toast('❌ Нет интернета');
+    }
+    loading=false;
 }
 
-async function sync(){toast('🔄');await loadCloud();render();toast('✅')}
+async function saveData(){
+    if(loading)return false;
+    loading=true;
+    setStatus('sync','Сохранение...');
+    try{
+        var r=await fetch(API+'?action=saveData',{method:'POST',body:JSON.stringify(D)});
+        var res=await r.json();
+        if(res.success){
+            setStatus('on','Сохранено');
+            loading=false;
+            return true;
+        }
+    }catch(e){
+        toast('❌ Ошибка сохранения');
+    }
+    setStatus('off','Ошибка');
+    loading=false;
+    return false;
+}
 
 function render(){
     renderSelects();
@@ -360,7 +359,6 @@ function renderSelects(){
     $('eProj').innerHTML='<option value="Общие">Общие</option>'+opts;
     $('eiProj').innerHTML=opts||'<option>Нет</option>';
     $('eeProj').innerHTML='<option value="Общие">Общие</option>'+opts;
-    // Восстанавливаем выбор
     if(curInc)$('iProj').value=curInc;
     if(curExp)$('eProj').value=curExp;
 }
@@ -371,7 +369,7 @@ function renderHome(){
     var exp=D.expenses.filter(function(e){return!e._archived&&!e._deleted&&(period==='all'||(e.date||'')>=start)});
     var tInc=inc.reduce(function(s,i){return s+i.amount},0);
     var tExp=exp.reduce(function(s,e){return s+e.amount},0);
-    var tAss=D.assets.reduce(function(s,a){return s+(a.qty*a.cost/a.qty||0)},0);
+    var tAss=D.assets.reduce(function(s,a){return s+(a.qty>0?a.cost:0)},0);
     $('hInc').textContent=fmt(tInc);
     $('hExp').textContent=fmt(tExp);
     $('hProf').textContent=fmt(tInc-tExp);
@@ -382,7 +380,7 @@ function renderHome(){
     var sorted=Object.entries(cats).sort(function(a,b){return b[1]-a[1]}).slice(0,5);
     $('hCats').innerHTML=sorted.length?sorted.map(function(c){return'<div class="list-item"><div class="row"><div class="title">'+c[0]+'</div><div class="amount red">'+fmt(c[1])+'</div></div></div>'}).join(''):'<div class="empty">Нет данных</div>';
     
-    var all=inc.map(function(i){return{t:'i',d:i.date||i.ts,data:i}}).concat(exp.map(function(e){return{t:'e',d:e.date||e.ts,data:e}})).sort(function(a,b){return(b.d||'').localeCompare(a.d||'')}).slice(0,5);
+    var all=inc.map(function(i){return{t:'i',d:i.date||i.ts||'',data:i}}).concat(exp.map(function(e){return{t:'e',d:e.date||e.ts||'',data:e}})).sort(function(a,b){return b.d.localeCompare(a.d)}).slice(0,5);
     $('hRecent').innerHTML=all.length?all.map(function(x){
         if(x.t==='i'){var p=D.projects.find(function(pr){return pr.id===x.data.projectId});return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+x.data.type+'</div></div><div class="amount green">+'+fmt(x.data.amount)+'</div></div></div>'}
         return'<div class="list-item"><div class="row"><div><div class="title">'+x.data.category+'</div><div class="sub">'+(x.data.desc||'')+'</div></div><div class="amount red">-'+fmt(x.data.amount)+'</div></div></div>'
@@ -413,7 +411,7 @@ function renderInc(){
     if(incF==='deleted')list=D.income.filter(function(i){return i._deleted});
     else if(incF==='archived')list=D.income.filter(function(i){return i._archived&&!i._deleted});
     else list=D.income.filter(function(i){return!i._archived&&!i._deleted});
-    list.sort(function(a,b){return(b.ts||'').localeCompare(a.ts||'')});
+    list.sort(function(a,b){return(b.date||b.ts||'').localeCompare(a.date||a.ts||'')});
     $('incList').innerHTML=list.length?list.map(function(i){
         var p=D.projects.find(function(pr){return pr.id===i.projectId});
         return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+i.type+(i.author?' • '+i.author:'')+'</div></div><div class="amount green">+'+fmt(i.amount)+'</div></div>'+
@@ -429,7 +427,7 @@ function renderExp(){
     if(expF==='deleted')list=D.expenses.filter(function(e){return e._deleted});
     else if(expF==='archived')list=D.expenses.filter(function(e){return e._archived&&!e._deleted});
     else list=D.expenses.filter(function(e){return!e._archived&&!e._deleted});
-    list.sort(function(a,b){return(b.ts||'').localeCompare(a.ts||'')});
+    list.sort(function(a,b){return(b.date||b.ts||'').localeCompare(a.date||a.ts||'')});
     $('expList').innerHTML=list.length?list.map(function(e){
         return'<div class="list-item"><div class="row"><div><div class="title">'+e.category+'</div><div class="sub">'+(e.desc||'')+(e.author?' • '+e.author:'')+'</div></div><div class="amount red">-'+fmt(e.amount)+'</div></div>'+
         '<div class="actions">'+
@@ -470,11 +468,11 @@ async function saveProj(){
     }else{
         D.projects.push({id:'P'+Date.now(),name:name,client:$('projClient').value,phone:$('projPhone').value,address:$('projAddr').value,sum:sum,paid:0,status:'active',stage:0,ts:now()});
     }
-    if(await saveCloud()){hideModal('project');render();toast('✅')}
+    if(await saveData()){hideModal('project');render();toast('✅')}
 }
-async function projStatus(id,s){var p=D.projects.find(function(x){return x.id===id});if(p){p.status=s;p._deleted=false;p.ts=now();if(await saveCloud()){render();toast('✅')}}}
-async function delProj(id){if(!confirm('Удалить?'))return;var p=D.projects.find(function(x){return x.id===id});if(p){p._deleted=true;p.ts=now();if(await saveCloud()){render();toast('🗑')}}}
-async function restoreProj(id){var p=D.projects.find(function(x){return x.id===id});if(p){p._deleted=false;p.status='active';p.ts=now();if(await saveCloud()){render();toast('♻️')}}}
+async function projStatus(id,s){var p=D.projects.find(function(x){return x.id===id});if(p){p.status=s;p._deleted=false;p.ts=now();if(await saveData()){render();toast('✅')}}}
+async function delProj(id){if(!confirm('Удалить?'))return;var p=D.projects.find(function(x){return x.id===id});if(p){p._deleted=true;p.ts=now();if(await saveData()){render();toast('🗑')}}}
+async function restoreProj(id){var p=D.projects.find(function(x){return x.id===id});if(p){p._deleted=false;p.status='active';p.ts=now();if(await saveData()){render();toast('♻️')}}}
 
 // ДОХОДЫ
 async function addInc(){
@@ -482,9 +480,9 @@ async function addInc(){
     var sum=parseFloat($('iSum').value)||0;
     var type=$('iType').value;
     var author=$('iAuthor').value;
-    if(!sum)return toast('❌');
+    if(!sum)return toast('❌ Введите сумму');
     D.income.push({id:'I'+Date.now(),projectId:projId,amount:sum,type:type,author:author,date:today(),ts:now()});
-    if(await saveCloud()){$('iSum').value='';render();toast('✅')}
+    if(await saveData()){$('iSum').value='';render();toast('✅')}
 }
 function editInc(id){
     var i=D.income.find(function(x){return x.id===id});if(!i)return;
@@ -496,11 +494,11 @@ async function saveInc(){
     var id=$('eiId').value;
     var i=D.income.find(function(x){return x.id===id});if(!i)return;
     i.projectId=$('eiProj').value;i.amount=parseFloat($('eiSum').value)||0;i.type=$('eiType').value;i.ts=now();
-    if(await saveCloud()){hideModal('editInc');render();toast('✅')}
+    if(await saveData()){hideModal('editInc');render();toast('✅')}
 }
-async function archiveInc(id){var i=D.income.find(function(x){return x.id===id});if(i){i._archived=true;i.ts=now();if(await saveCloud()){render();toast('📦')}}}
-async function delInc(id){if(!confirm('Удалить?'))return;var i=D.income.find(function(x){return x.id===id});if(i){i._deleted=true;i.ts=now();if(await saveCloud()){render();toast('🗑')}}}
-async function restoreInc(id){var i=D.income.find(function(x){return x.id===id});if(i){i._archived=false;i._deleted=false;i.ts=now();if(await saveCloud()){render();toast('♻️')}}}
+async function archiveInc(id){var i=D.income.find(function(x){return x.id===id});if(i){i._archived=true;i.ts=now();if(await saveData()){render();toast('📦')}}}
+async function delInc(id){if(!confirm('Удалить?'))return;var i=D.income.find(function(x){return x.id===id});if(i){i._deleted=true;i.ts=now();if(await saveData()){render();toast('🗑')}}}
+async function restoreInc(id){var i=D.income.find(function(x){return x.id===id});if(i){i._archived=false;i._deleted=false;i.ts=now();if(await saveData()){render();toast('♻️')}}}
 
 // РАСХОДЫ
 async function addExp(){
@@ -509,9 +507,9 @@ async function addExp(){
     var sum=parseFloat($('eSum').value)||0;
     var desc=$('eDesc').value;
     var author=$('eAuthor').value;
-    if(!sum)return toast('❌');
+    if(!sum)return toast('❌ Введите сумму');
     D.expenses.push({id:'E'+Date.now(),projectId:projId,category:cat,amount:sum,desc:desc,author:author,date:today(),ts:now()});
-    if(await saveCloud()){$('eSum').value='';$('eDesc').value='';render();toast('✅')}
+    if(await saveData()){$('eSum').value='';$('eDesc').value='';render();toast('✅')}
 }
 function editExp(id){
     var e=D.expenses.find(function(x){return x.id===id});if(!e)return;
@@ -523,30 +521,32 @@ async function saveExp(){
     var id=$('eeId').value;
     var e=D.expenses.find(function(x){return x.id===id});if(!e)return;
     e.projectId=$('eeProj').value;e.category=$('eeCat').value;e.amount=parseFloat($('eeSum').value)||0;e.desc=$('eeDesc').value;e.ts=now();
-    if(await saveCloud()){hideModal('editExp');render();toast('✅')}
+    if(await saveData()){hideModal('editExp');render();toast('✅')}
 }
-async function archiveExp(id){var e=D.expenses.find(function(x){return x.id===id});if(e){e._archived=true;e.ts=now();if(await saveCloud()){render();toast('📦')}}}
-async function delExp(id){if(!confirm('Удалить?'))return;var e=D.expenses.find(function(x){return x.id===id});if(e){e._deleted=true;e.ts=now();if(await saveCloud()){render();toast('🗑')}}}
-async function restoreExp(id){var e=D.expenses.find(function(x){return x.id===id});if(e){e._archived=false;e._deleted=false;e.ts=now();if(await saveCloud()){render();toast('♻️')}}}
+async function archiveExp(id){var e=D.expenses.find(function(x){return x.id===id});if(e){e._archived=true;e.ts=now();if(await saveData()){render();toast('📦')}}}
+async function delExp(id){if(!confirm('Удалить?'))return;var e=D.expenses.find(function(x){return x.id===id});if(e){e._deleted=true;e.ts=now();if(await saveData()){render();toast('🗑')}}}
+async function restoreExp(id){var e=D.expenses.find(function(x){return x.id===id});if(e){e._archived=false;e._deleted=false;e.ts=now();if(await saveData()){render();toast('♻️')}}}
 
 // СКЛАД
 async function addAsset(){
     var name=$('assName').value.trim();
     var qty=parseFloat($('assQty').value)||0;
     var cost=parseFloat($('assCost').value)||0;
-    if(!name||!qty||!cost)return toast('❌');
+    if(!name||!qty||!cost)return toast('❌ Заполните все поля');
     D.assets.push({id:'A'+Date.now(),name:name,qty:qty,cost:cost,ts:now()});
-    if(await saveCloud()){hideModal('addAsset');$('assName').value='';$('assQty').value='';$('assCost').value='';render();toast('✅')}
+    if(await saveData()){hideModal('addAsset');$('assName').value='';$('assQty').value='';$('assCost').value='';render();toast('✅')}
 }
 
 function backup(){
     var a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));
-    a.download='backup_'+today()+'.json';a.click();toast('💾');
+    a.download='ideal_mebel_backup_'+today()+'.json';a.click();toast('💾 Бэкап сохранён');
 }
 
-// СТАРТ
-loadLocal();fix();render();loadCloud();setInterval(loadCloud,10000);
+// СТАРТ - только загрузка с облака
+loadData();
+// Автообновление каждые 30 секунд
+setInterval(loadData,30000);
 </script>
 </body>
 </html>
