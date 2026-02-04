@@ -299,6 +299,7 @@ function fix(){
     D.assets.forEach(function(a){a.qty=parseFloat(a.qty)||0;a.cost=parseFloat(a.cost)||0});
 }
 
+// ========== ТОЛЬКО ОБЛАКО ==========
 async function loadData(){
     if(loading)return;
     loading=true;
@@ -444,6 +445,7 @@ function renderAss(){
     }).join('')||'<div class="empty"><span>📦</span>Пусто</div>';
 }
 
+// ПРОЕКТЫ
 function newProj(){
     $('projId').value='';$('projTitle').textContent='Новый проект';
     $('projName').value='';$('projClient').value='';$('projPhone').value='';$('projAddr').value='';$('projSum').value='';
@@ -468,10 +470,27 @@ async function saveProj(){
     }
     if(await saveData()){hideModal('project');render();toast('✅')}
 }
-async function projStatus(id,s){var p=D.projects.find(function(x){return x.id===id});if(p){p.status=s;p._deleted=false;p.ts=now();if(await saveData()){render();toast('✅')}}}
+async function projStatus(id,s){
+    var p=D.projects.find(function(x){return x.id===id});
+    if(!p)return;
+    // При завершении проекта — автоматически добавить доход на остаток
+    if(s==='done'&&p.status==='active'){
+        var remaining=p.sum-p.paid;
+        if(remaining>0){
+            if(!confirm('Завершить проект?\nОстаток '+fmt(remaining)+' будет записан как финальный платёж.')){return}
+            D.income.push({id:'I'+Date.now(),projectId:p.id,amount:remaining,type:'Финальная',method:'Наличные',note:'Авто: завершение '+p.name,date:today(),ts:now()});
+        }else{
+            if(!confirm('Завершить проект?'))return;
+        }
+    }
+    p.status=s;p._deleted=false;p.ts=now();
+    fix();
+    if(await saveData()){render();toast('✅')}
+}
 async function delProj(id){if(!confirm('Удалить?'))return;var p=D.projects.find(function(x){return x.id===id});if(p){p._deleted=true;p.ts=now();if(await saveData()){render();toast('🗑')}}}
 async function restoreProj(id){var p=D.projects.find(function(x){return x.id===id});if(p){p._deleted=false;p.status='active';p.ts=now();if(await saveData()){render();toast('♻️')}}}
 
+// ДОХОДЫ
 async function addInc(){
     var projId=$('iProj').value;
     var sum=parseFloat($('iSum').value)||0;
@@ -497,6 +516,7 @@ async function archiveInc(id){var i=D.income.find(function(x){return x.id===id})
 async function delInc(id){if(!confirm('Удалить?'))return;var i=D.income.find(function(x){return x.id===id});if(i){i._deleted=true;i.ts=now();if(await saveData()){render();toast('🗑')}}}
 async function restoreInc(id){var i=D.income.find(function(x){return x.id===id});if(i){i._archived=false;i._deleted=false;i.ts=now();if(await saveData()){render();toast('♻️')}}}
 
+// РАСХОДЫ
 async function addExp(){
     var projId=$('eProj').value;
     var cat=$('eCat').value;
@@ -523,6 +543,7 @@ async function archiveExp(id){var e=D.expenses.find(function(x){return x.id===id
 async function delExp(id){if(!confirm('Удалить?'))return;var e=D.expenses.find(function(x){return x.id===id});if(e){e._deleted=true;e.ts=now();if(await saveData()){render();toast('🗑')}}}
 async function restoreExp(id){var e=D.expenses.find(function(x){return x.id===id});if(e){e._archived=false;e._deleted=false;e.ts=now();if(await saveData()){render();toast('♻️')}}}
 
+// СКЛАД
 async function addAsset(){
     var name=$('assName').value.trim();
     var qty=parseFloat($('assQty').value)||0;
@@ -538,7 +559,9 @@ function backup(){
     a.download='ideal_mebel_backup_'+today()+'.json';a.click();toast('💾 Бэкап сохранён');
 }
 
+// СТАРТ - только загрузка с облака
 loadData();
+// Автообновление каждые 30 секунд
 setInterval(loadData,30000);
 </script>
 </body>
