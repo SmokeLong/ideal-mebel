@@ -86,7 +86,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <div class="header">
 <h1>I</h1>
 <div class="header-sub"><span class="sync-dot" id="dot"></span><span id="status">Загрузка...</span></div>
-<div class="header-btns"><button class="header-btn" onclick="loadData()">🔄</button><button class="header-btn" onclick="showModal('settings')">⚙️</button></div>
+<div class="header-btns"><button class="header-btn" onclick="loadData(true)">🔄</button><button class="header-btn" onclick="showModal('settings')">⚙️</button></div>
 </div>
 <div class="content">
 <!-- ГЛАВНАЯ -->
@@ -211,7 +211,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 </div></div>
 <div class="modal" id="m-settings"><div class="modal-box">
 <div class="modal-head"><div class="modal-title">Настройки</div><button class="modal-close" onclick="hideModal('settings')">✕</button></div>
-<button class="btn btn-primary" onclick="loadData()" style="margin-bottom:10px">🔄 Обновить данные</button>
+<button class="btn btn-primary" onclick="loadData(true)" style="margin-bottom:10px">🔄 Обновить данные</button>
 <button class="btn" style="background:#252525;border:1px solid #333" onclick="backup()">💾 Скачать бэкап</button>
 <p style="font-size:11px;color:#999;margin-top:14px;text-align:center">Все данные хранятся в облаке.<br>Локальное хранение отключено.</p>
 </div></div>
@@ -246,7 +246,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <script>
 var API='https://script.google.com/macros/s/AKfycbw8TJl8mULzWlLeTuFO7LZVNcr3k-J1oXoEU3vV8IWPVoq6eDwAQ4Xt7qy0ETI9EgEa/exec';
 var D={projects:[],income:[],expenses:[],assets:[]};
-var period='all',projF='active',incF='active',expF='active',loading=false;
+var period='all',projF='active',incF='active',expF='active',loading=false,lastSaveTime=0;
 
 function $(id){return document.getElementById(id)}
 function fmt(n){return(Math.round(n)||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'}
@@ -335,22 +335,33 @@ function setStatus(s,t){
     $('status').textContent=t;
 }
 
+function fixDate(obj){
+    if(obj.date&&obj.date.match(/^\d{4}-\d{2}-\d{2}$/))return;
+    if(obj.date&&obj.date.indexOf('T')>-1){obj.date=obj.date.split('T')[0];return}
+    if(obj.ts){
+        var t=String(obj.ts);
+        if(t.indexOf('T')>-1){obj.date=t.split('T')[0];return}
+        if(t.match(/^\d{4}-\d{2}-\d{2}/)){obj.date=t.substring(0,10);return}
+    }
+}
+
 function fix(){
     D.projects=D.projects||[];D.income=D.income||[];D.expenses=D.expenses||[];D.assets=D.assets||[];
     D.projects.forEach(function(p){
         p.sum=parseFloat(p.sum)||0;
         p.stage=parseInt(p.stage)||0;
-        if(!p.date&&p.ts)p.date=p.ts.split('T')[0];
+        fixDate(p);
         p.paid=D.income.filter(function(i){return i.projectId===p.id&&!i._archived&&!i._deleted}).reduce(function(s,i){return s+(parseFloat(i.amount)||0)},0);
     });
-    D.income.forEach(function(i){i.amount=parseFloat(i.amount)||0;if(!i.date&&i.ts)i.date=i.ts.split('T')[0]});
-    D.expenses.forEach(function(e){e.amount=parseFloat(e.amount)||0;if(!e.date&&e.ts)e.date=e.ts.split('T')[0]});
+    D.income.forEach(function(i){i.amount=parseFloat(i.amount)||0;fixDate(i)});
+    D.expenses.forEach(function(e){e.amount=parseFloat(e.amount)||0;fixDate(e)});
     D.assets.forEach(function(a){a.qty=parseFloat(a.qty)||0;a.cost=parseFloat(a.cost)||0});
 }
 
 // ========== ТОЛЬКО ОБЛАКО ==========
-async function loadData(){
+async function loadData(force){
     if(loading)return;
+    if(!force&&lastSaveTime&&(Date.now()-lastSaveTime<15000))return;
     loading=true;
     setStatus('sync','Загрузка...');
     try{
@@ -379,6 +390,7 @@ async function saveData(){
         var r=await fetch(API+'?action=saveData',{method:'POST',body:JSON.stringify(D)});
         var res=await r.json();
         if(res.success){
+            lastSaveTime=Date.now();
             setStatus('on','Сохранено');
             loading=false;
             return true;
@@ -645,7 +657,7 @@ function backup(){
 }
 
 // СТАРТ - только загрузка с облака
-loadData();
+loadData(true);
 // Автообновление каждые 30 секунд
 setInterval(loadData,30000);
 </script>
