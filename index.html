@@ -27,7 +27,7 @@ body{font-family:-apple-system,sans-serif;background:#0d0d0d;color:#fff;min-heig
 .card-title{font-size:13px;color:#999;margin-bottom:12px}
 .form-group{margin-bottom:12px}
 .form-group label{display:block;font-size:11px;color:#999;margin-bottom:5px}
-input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;border-radius:12px;color:#fff;font-size:16px}
+input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;border-radius:12px;color:#fff;font-size:16px;color-scheme:dark}
 .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
 .btn-primary{background:linear-gradient(135deg,#8B7355,#A69076);color:#fff}
 .btn-green{background:#4CAF50;color:#fff}
@@ -51,6 +51,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 .list-item .title{font-weight:600;font-size:14px}
 .list-item .sub{font-size:11px;color:#999;margin-top:2px}
 .list-item .amount{font-weight:700;font-size:15px}
+.list-item .date-badge{font-size:10px;color:#777;margin-top:3px;text-align:right}
 .actions{display:flex;gap:5px;margin-top:8px}
 .act-btn{padding:6px 10px;background:#252525;border:1px solid #333;border-radius:8px;color:#fff;font-size:11px}
 .act-btn.red{color:#ef5350}
@@ -95,6 +96,13 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <button class="period-btn" onclick="setPer('year',this)">Год</button>
 <button class="period-btn" onclick="setPer('month',this)">Мес</button>
 <button class="period-btn" onclick="setPer('week',this)">Нед</button>
+<button class="period-btn" onclick="setPer('custom',this)">📅</button>
+</div>
+<div id="customRange" style="display:none;margin-bottom:14px">
+<div style="display:flex;gap:8px;align-items:center">
+<div style="flex:1"><label style="font-size:10px;color:#999;display:block;margin-bottom:4px">От</label><input type="date" id="perFrom" onchange="applyCustom()" style="font-size:14px;padding:10px"></div>
+<div style="flex:1"><label style="font-size:10px;color:#999;display:block;margin-bottom:4px">До</label><input type="date" id="perTo" onchange="applyCustom()" style="font-size:14px;padding:10px"></div>
+</div>
 </div>
 <div class="profit-box"><div class="label">💵 СВОБОДНЫЕ ДЕНЬГИ</div><div class="value" id="hFree">0 ₽</div></div>
 <div class="summary-grid">
@@ -204,6 +212,15 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <button class="btn" style="background:#252525;border:1px solid #333" onclick="backup()">💾 Скачать бэкап</button>
 <p style="font-size:11px;color:#999;margin-top:14px;text-align:center">Все данные хранятся в облаке.<br>Локальное хранение отключено.</p>
 </div></div>
+<div class="modal" id="m-useAsset"><div class="modal-box">
+<div class="modal-head"><div class="modal-title">Списать в проект</div><button class="modal-close" onclick="hideModal('useAsset')">✕</button></div>
+<input type="hidden" id="uaId">
+<div class="form-group"><label>Материал</label><div id="uaName" style="padding:12px;background:#252525;border-radius:12px;color:#fff"></div></div>
+<div class="form-group"><label>На складе</label><div id="uaAvail" style="padding:12px;background:#252525;border-radius:12px;color:#FFB74D"></div></div>
+<div class="form-group"><label>Проект</label><select id="uaProj"></select></div>
+<div class="form-group"><label>Количество</label><input type="number" id="uaQty" inputmode="decimal"></div>
+<button class="btn btn-primary" onclick="useAsset()">📦 Списать</button>
+</div></div>
 <div class="modal" id="m-editInc"><div class="modal-box">
 <div class="modal-head"><div class="modal-title">Редактировать доход</div><button class="modal-close" onclick="hideModal('editInc')">✕</button></div>
 <input type="hidden" id="eiId">
@@ -232,6 +249,15 @@ function now(){return new Date().toISOString()}
 function today(){return now().split('T')[0]}
 function toast(m){var t=$('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none'},1500)}
 
+function fmtDate(raw){
+    if(!raw)return'';
+    var d=raw.split('T')[0];
+    if(!d)return'';
+    var parts=d.split('-');
+    if(parts.length!==3)return d;
+    return parts[2]+'.'+parts[1]+'.'+parts[0];
+}
+
 function go(name){
     document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
     document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active')});
@@ -252,7 +278,19 @@ function setPer(p,btn){
     period=p;
     document.querySelectorAll('.period-btn').forEach(function(b){b.classList.remove('active')});
     if(btn)btn.classList.add('active');
+    $('customRange').style.display=p==='custom'?'block':'none';
+    if(p==='custom'){
+        if(!$('perFrom').value||!$('perTo').value){
+            var d=new Date();
+            $('perTo').value=today();
+            d.setMonth(d.getMonth()-1);
+            $('perFrom').value=d.toISOString().split('T')[0];
+        }
+    }
     renderHome();
+}
+function applyCustom(){
+    if($('perFrom').value&&$('perTo').value)renderHome();
 }
 function setProjF(f,btn){
     projF=f;
@@ -275,11 +313,16 @@ function setExpF(f,btn){
 
 function getPerStart(){
     if(period==='all')return'2000-01-01';
+    if(period==='custom')return $('perFrom').value||'2000-01-01';
     var d=new Date();
     if(period==='week')d.setDate(d.getDate()-7);
     else if(period==='month')d.setMonth(d.getMonth()-1);
     else if(period==='year')d.setFullYear(d.getFullYear()-1);
     return d.toISOString().split('T')[0];
+}
+function getPerEnd(){
+    if(period==='custom')return $('perTo').value||'2099-12-31';
+    return'2099-12-31';
 }
 
 function setStatus(s,t){
@@ -365,8 +408,9 @@ function renderSelects(){
 
 function renderHome(){
     var start=getPerStart();
-    var inc=D.income.filter(function(i){return!i._archived&&!i._deleted&&(period==='all'||(i.date||'')>=start)});
-    var exp=D.expenses.filter(function(e){return!e._archived&&!e._deleted&&(period==='all'||(e.date||'')>=start)});
+    var end=getPerEnd();
+    var inc=D.income.filter(function(i){return!i._archived&&!i._deleted&&(period==='all'||((i.date||'')>=start&&(i.date||'')<=end))});
+    var exp=D.expenses.filter(function(e){return!e._archived&&!e._deleted&&(period==='all'||((e.date||'')>=start&&(e.date||'')<=end))});
     var tInc=inc.reduce(function(s,i){return s+i.amount},0);
     var tExp=exp.reduce(function(s,e){return s+e.amount},0);
     var tAss=D.assets.reduce(function(s,a){return s+(a.qty>0?a.cost:0)},0);
@@ -382,8 +426,9 @@ function renderHome(){
     
     var all=inc.map(function(i){return{t:'i',d:i.date||i.ts||'',data:i}}).concat(exp.map(function(e){return{t:'e',d:e.date||e.ts||'',data:e}})).sort(function(a,b){return b.d.localeCompare(a.d)}).slice(0,5);
     $('hRecent').innerHTML=all.length?all.map(function(x){
-        if(x.t==='i'){var p=D.projects.find(function(pr){return pr.id===x.data.projectId});return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+x.data.type+'</div></div><div class="amount green">+'+fmt(x.data.amount)+'</div></div></div>'}
-        return'<div class="list-item"><div class="row"><div><div class="title">'+x.data.category+'</div><div class="sub">'+(x.data.desc||'')+'</div></div><div class="amount red">-'+fmt(x.data.amount)+'</div></div></div>'
+        var dt=fmtDate(x.data.date||x.data.ts||'');
+        if(x.t==='i'){var p=D.projects.find(function(pr){return pr.id===x.data.projectId});return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+x.data.type+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount green">+'+fmt(x.data.amount)+'</div></div></div>'}
+        return'<div class="list-item"><div class="row"><div><div class="title">'+x.data.category+'</div><div class="sub">'+(x.data.desc||'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount red">-'+fmt(x.data.amount)+'</div></div></div>'
     }).join(''):'<div class="empty"><span>📭</span>Пусто</div>';
 }
 
@@ -391,8 +436,9 @@ function renderProj(){
     var list=projF==='deleted'?D.projects.filter(function(p){return p._deleted}):D.projects.filter(function(p){return p.status===projF&&!p._deleted});
     $('projList').innerHTML=list.length?list.map(function(p){
         var pct=p.sum?Math.min(100,Math.round(p.paid/p.sum*100)):0;
+        var dt=fmtDate(p.date||p.ts||'');
         return'<div class="list-item">'+(p._deleted?'<div class="sub" style="color:#ef5350">Удалён</div>':'')+
-        '<div class="title">'+p.name+'</div><div class="sub">'+(p.client||'')+'</div>'+
+        '<div class="row"><div class="title">'+p.name+'</div>'+(dt?'<div class="sub">📅 '+dt+'</div>':'')+'</div><div class="sub">'+(p.client||'')+'</div>'+
         '<div class="money-tags"><div class="money-tag white">💰 '+fmt(p.sum)+'</div><div class="money-tag white">✅ '+fmt(p.paid)+'</div><div class="money-tag yellow">⏳ '+fmt(p.sum-p.paid)+'</div></div>'+
         '<div class="progress"><div class="fill" style="width:'+pct+'%"></div></div>'+
         '<div class="actions">'+
@@ -414,7 +460,8 @@ function renderInc(){
     list.sort(function(a,b){return(b.date||b.ts||'').localeCompare(a.date||a.ts||'')});
     $('incList').innerHTML=list.length?list.map(function(i){
         var p=D.projects.find(function(pr){return pr.id===i.projectId});
-        return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+i.type+(i.author?' • '+i.author:'')+'</div></div><div class="amount green">+'+fmt(i.amount)+'</div></div>'+
+        var dt=fmtDate(i.date||i.ts||'');
+        return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+i.type+(i.author?' • '+i.author:'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount green">+'+fmt(i.amount)+'</div></div>'+
         '<div class="actions">'+
         (i._deleted||i._archived?'<button class="act-btn green" onclick="restoreInc(\''+i.id+'\')">♻️</button>':
         '<button class="act-btn" onclick="editInc(\''+i.id+'\')">✏️</button><button class="act-btn" onclick="archiveInc(\''+i.id+'\')">📦</button><button class="act-btn red" onclick="delInc(\''+i.id+'\')">🗑</button>')+
@@ -429,7 +476,8 @@ function renderExp(){
     else list=D.expenses.filter(function(e){return!e._archived&&!e._deleted});
     list.sort(function(a,b){return(b.date||b.ts||'').localeCompare(a.date||a.ts||'')});
     $('expList').innerHTML=list.length?list.map(function(e){
-        return'<div class="list-item"><div class="row"><div><div class="title">'+e.category+'</div><div class="sub">'+(e.desc||'')+(e.author?' • '+e.author:'')+'</div></div><div class="amount red">-'+fmt(e.amount)+'</div></div>'+
+        var dt=fmtDate(e.date||e.ts||'');
+        return'<div class="list-item"><div class="row"><div><div class="title">'+e.category+'</div><div class="sub">'+(e.desc||'')+(e.author?' • '+e.author:'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount red">-'+fmt(e.amount)+'</div></div>'+
         '<div class="actions">'+
         (e._deleted||e._archived?'<button class="act-btn green" onclick="restoreExp(\''+e.id+'\')">♻️</button>':
         '<button class="act-btn" onclick="editExp(\''+e.id+'\')">✏️</button><button class="act-btn" onclick="archiveExp(\''+e.id+'\')">📦</button><button class="act-btn red" onclick="delExp(\''+e.id+'\')">🗑</button>')+
@@ -441,7 +489,8 @@ function renderAss(){
     var total=D.assets.filter(function(a){return a.qty>0}).reduce(function(s,a){return s+a.cost},0);
     $('assTotal').textContent=fmt(total);
     $('assList').innerHTML=D.assets.filter(function(a){return a.qty>0}).map(function(a){
-        return'<div class="list-item"><div class="row"><div class="title">'+a.name+'</div><div><div class="amount yellow">'+a.qty+' шт</div><div class="sub">'+fmt(a.cost)+'</div></div></div></div>'
+        return'<div class="list-item"><div class="row"><div class="title">'+a.name+'</div><div><div class="amount yellow">'+a.qty+' шт</div><div class="sub">'+fmt(a.cost)+'</div></div></div>'+
+        '<div class="actions"><button class="act-btn" onclick="openUseAsset(\''+a.id+'\')">📋 В проект</button></div></div>'
     }).join('')||'<div class="empty"><span>📦</span>Пусто</div>';
 }
 
@@ -466,7 +515,7 @@ async function saveProj(){
         var p=D.projects.find(function(x){return x.id===id});
         if(p){p.name=name;p.client=$('projClient').value;p.phone=$('projPhone').value;p.address=$('projAddr').value;p.sum=sum;p.ts=now()}
     }else{
-        D.projects.push({id:'P'+Date.now(),name:name,client:$('projClient').value,phone:$('projPhone').value,address:$('projAddr').value,sum:sum,paid:0,status:'active',stage:0,ts:now()});
+        D.projects.push({id:'P'+Date.now(),name:name,client:$('projClient').value,phone:$('projPhone').value,address:$('projAddr').value,sum:sum,paid:0,status:'active',stage:0,date:today(),ts:now()});
     }
     if(await saveData()){hideModal('project');render();toast('✅')}
 }
@@ -544,6 +593,31 @@ async function delExp(id){if(!confirm('Удалить?'))return;var e=D.expenses
 async function restoreExp(id){var e=D.expenses.find(function(x){return x.id===id});if(e){e._archived=false;e._deleted=false;e.ts=now();if(await saveData()){render();toast('♻️')}}}
 
 // СКЛАД
+function openUseAsset(id){
+    var a=D.assets.find(function(x){return x.id===id});if(!a)return;
+    $('uaId').value=id;
+    $('uaName').textContent=a.name;
+    $('uaAvail').textContent=a.qty+' шт ('+fmt(a.cost)+')';
+    var opts=D.projects.filter(function(p){return p.status==='active'&&!p._deleted}).map(function(p){return'<option value="'+p.id+'">'+p.name+'</option>'}).join('');
+    $('uaProj').innerHTML=opts||'<option>Нет проектов</option>';
+    $('uaQty').value='';
+    showModal('useAsset');
+}
+async function useAsset(){
+    var id=$('uaId').value;
+    var a=D.assets.find(function(x){return x.id===id});if(!a)return;
+    var projId=$('uaProj').value;
+    var qty=parseFloat($('uaQty').value)||0;
+    if(!qty||qty<=0)return toast('❌ Введите количество');
+    if(qty>a.qty)return toast('❌ На складе только '+a.qty+' шт');
+    var unitCost=a.cost/a.qty;
+    var usedCost=Math.round(unitCost*qty);
+    a.qty-=qty;
+    a.cost-=usedCost;
+    a.ts=now();
+    D.expenses.push({id:'E'+Date.now(),projectId:projId,category:'Со склада',amount:usedCost,desc:a.name+' x'+qty,date:today(),ts:now()});
+    if(await saveData()){hideModal('useAsset');render();toast('✅ Списано')}
+}
 async function addAsset(){
     var name=$('assName').value.trim();
     var qty=parseFloat($('assQty').value)||0;
