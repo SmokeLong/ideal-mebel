@@ -139,6 +139,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <div class="form-group"><label>Проект</label><select id="iProj"></select></div>
 <div class="form-group"><label>Сумма</label><input type="number" id="iSum" inputmode="decimal"></div>
 <div class="form-group"><label>Тип</label><select id="iType"><option>Предоплата</option><option>Частичная</option><option>Финальная</option><option>Фирма</option></select></div>
+<div class="form-group"><label>Дата</label><input type="date" id="iDate"></div>
 <button class="btn btn-green" onclick="addInc()">✅ Записать</button>
 </div>
 <div class="card">
@@ -160,6 +161,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <div class="form-group"><label>Категория</label><select id="eCat"><option>Магазины</option><option>Закуп материалов</option><option>Амортизация предприятия</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Бензин</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option><option>Фирма</option></select></div>
 <div class="form-group"><label>Сумма</label><input type="number" id="eSum" inputmode="decimal"></div>
 <div class="form-group"><label>Описание</label><input id="eDesc"></div>
+<div class="form-group"><label>Дата</label><input type="date" id="eDate"></div>
 <button class="btn btn-red" onclick="addExp()">💸 Записать</button>
 </div>
 <div class="card">
@@ -197,6 +199,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <div class="form-group"><label>Телефон</label><input id="projPhone"></div>
 <div class="form-group"><label>Адрес</label><input id="projAddr"></div>
 <div class="form-group"><label>Сумма договора</label><input type="number" id="projSum" inputmode="decimal"></div>
+<div class="form-group"><label>Дата</label><input type="date" id="projDate"></div>
 <button class="btn btn-primary" onclick="saveProj()">✅ Сохранить</button>
 </div></div>
 <div class="modal" id="m-addAsset"><div class="modal-box">
@@ -227,6 +230,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <div class="form-group"><label>Проект</label><select id="eiProj"></select></div>
 <div class="form-group"><label>Сумма</label><input type="number" id="eiSum" inputmode="decimal"></div>
 <div class="form-group"><label>Тип</label><select id="eiType"><option>Предоплата</option><option>Частичная</option><option>Финальная</option><option>Фирма</option></select></div>
+<div class="form-group"><label>Дата</label><input type="date" id="eiDate"></div>
 <button class="btn btn-primary" onclick="saveInc()">✅ Сохранить</button>
 </div></div>
 <div class="modal" id="m-editExp"><div class="modal-box">
@@ -236,6 +240,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <div class="form-group"><label>Категория</label><select id="eeCat"><option>Магазины</option><option>Закуп материалов</option><option>Амортизация предприятия</option><option>Улучшение цеха</option><option>Оборудование</option><option>Доставка</option><option>Бензин</option><option>Реклама</option><option>Налоги</option><option>Аренда</option><option>Водоканал</option><option>Электроэнергия</option><option>Уголь</option><option>Прочие</option><option>ЗП Саша</option><option>ЗП Рома</option><option>ЗП Леха</option><option>ЗП Ара</option><option>ЗП Коробов</option><option>Фирма</option><option>Со склада</option></select></div>
 <div class="form-group"><label>Сумма</label><input type="number" id="eeSum" inputmode="decimal"></div>
 <div class="form-group"><label>Описание</label><input id="eeDesc"></div>
+<div class="form-group"><label>Дата</label><input type="date" id="eeDate"></div>
 <button class="btn btn-primary" onclick="saveExp()">✅ Сохранить</button>
 </div></div>
 <script>
@@ -335,10 +340,11 @@ function fix(){
     D.projects.forEach(function(p){
         p.sum=parseFloat(p.sum)||0;
         p.stage=parseInt(p.stage)||0;
+        if(!p.date&&p.ts)p.date=p.ts.split('T')[0];
         p.paid=D.income.filter(function(i){return i.projectId===p.id&&!i._archived&&!i._deleted}).reduce(function(s,i){return s+(parseFloat(i.amount)||0)},0);
     });
-    D.income.forEach(function(i){i.amount=parseFloat(i.amount)||0});
-    D.expenses.forEach(function(e){e.amount=parseFloat(e.amount)||0});
+    D.income.forEach(function(i){i.amount=parseFloat(i.amount)||0;if(!i.date&&i.ts)i.date=i.ts.split('T')[0]});
+    D.expenses.forEach(function(e){e.amount=parseFloat(e.amount)||0;if(!e.date&&e.ts)e.date=e.ts.split('T')[0]});
     D.assets.forEach(function(a){a.qty=parseFloat(a.qty)||0;a.cost=parseFloat(a.cost)||0});
 }
 
@@ -387,6 +393,8 @@ async function saveData(){
 
 function render(){
     renderSelects();
+    if(!$('iDate').value)$('iDate').value=today();
+    if(!$('eDate').value)$('eDate').value=today();
     renderHome();
     renderProj();
     renderInc();
@@ -497,25 +505,26 @@ function renderAss(){
 // ПРОЕКТЫ
 function newProj(){
     $('projId').value='';$('projTitle').textContent='Новый проект';
-    $('projName').value='';$('projClient').value='';$('projPhone').value='';$('projAddr').value='';$('projSum').value='';
+    $('projName').value='';$('projClient').value='';$('projPhone').value='';$('projAddr').value='';$('projSum').value='';$('projDate').value=today();
     showModal('project');
 }
 function editProj(id){
     var p=D.projects.find(function(x){return x.id===id});if(!p)return;
     $('projId').value=id;$('projTitle').textContent='Редактировать';
-    $('projName').value=p.name||'';$('projClient').value=p.client||'';$('projPhone').value=p.phone||'';$('projAddr').value=p.address||'';$('projSum').value=p.sum||'';
+    $('projName').value=p.name||'';$('projClient').value=p.client||'';$('projPhone').value=p.phone||'';$('projAddr').value=p.address||'';$('projSum').value=p.sum||'';$('projDate').value=p.date||'';
     showModal('project');
 }
 async function saveProj(){
     var id=$('projId').value;
     var name=$('projName').value.trim();
     var sum=parseFloat($('projSum').value)||0;
+    var date=$('projDate').value||today();
     if(!name)return toast('❌ Введите название');
     if(id){
         var p=D.projects.find(function(x){return x.id===id});
-        if(p){p.name=name;p.client=$('projClient').value;p.phone=$('projPhone').value;p.address=$('projAddr').value;p.sum=sum;p.ts=now()}
+        if(p){p.name=name;p.client=$('projClient').value;p.phone=$('projPhone').value;p.address=$('projAddr').value;p.sum=sum;p.date=date;p.ts=now()}
     }else{
-        D.projects.push({id:'P'+Date.now(),name:name,client:$('projClient').value,phone:$('projPhone').value,address:$('projAddr').value,sum:sum,paid:0,status:'active',stage:0,date:today(),ts:now()});
+        D.projects.push({id:'P'+Date.now(),name:name,client:$('projClient').value,phone:$('projPhone').value,address:$('projAddr').value,sum:sum,paid:0,status:'active',stage:0,date:date,ts:now()});
     }
     if(await saveData()){hideModal('project');render();toast('✅')}
 }
@@ -545,20 +554,21 @@ async function addInc(){
     var sum=parseFloat($('iSum').value)||0;
     var type=$('iType').value;
     var author=$('iAuthor').value;
+    var date=$('iDate').value||today();
     if(!sum)return toast('❌ Введите сумму');
-    D.income.push({id:'I'+Date.now(),projectId:projId,amount:sum,type:type,author:author,date:today(),ts:now()});
+    D.income.push({id:'I'+Date.now(),projectId:projId,amount:sum,type:type,author:author,date:date,ts:now()});
     if(await saveData()){$('iSum').value='';render();toast('✅')}
 }
 function editInc(id){
     var i=D.income.find(function(x){return x.id===id});if(!i)return;
     renderSelects();
-    $('eiId').value=id;$('eiProj').value=i.projectId||'';$('eiSum').value=i.amount;$('eiType').value=i.type||'Предоплата';
+    $('eiId').value=id;$('eiProj').value=i.projectId||'';$('eiSum').value=i.amount;$('eiType').value=i.type||'Предоплата';$('eiDate').value=i.date||'';
     showModal('editInc');
 }
 async function saveInc(){
     var id=$('eiId').value;
     var i=D.income.find(function(x){return x.id===id});if(!i)return;
-    i.projectId=$('eiProj').value;i.amount=parseFloat($('eiSum').value)||0;i.type=$('eiType').value;i.ts=now();
+    i.projectId=$('eiProj').value;i.amount=parseFloat($('eiSum').value)||0;i.type=$('eiType').value;i.date=$('eiDate').value||i.date;i.ts=now();
     if(await saveData()){hideModal('editInc');render();toast('✅')}
 }
 async function archiveInc(id){var i=D.income.find(function(x){return x.id===id});if(i){i._archived=true;i.ts=now();if(await saveData()){render();toast('📦')}}}
@@ -572,20 +582,21 @@ async function addExp(){
     var sum=parseFloat($('eSum').value)||0;
     var desc=$('eDesc').value;
     var author=$('eAuthor').value;
+    var date=$('eDate').value||today();
     if(!sum)return toast('❌ Введите сумму');
-    D.expenses.push({id:'E'+Date.now(),projectId:projId,category:cat,amount:sum,desc:desc,author:author,date:today(),ts:now()});
+    D.expenses.push({id:'E'+Date.now(),projectId:projId,category:cat,amount:sum,desc:desc,author:author,date:date,ts:now()});
     if(await saveData()){$('eSum').value='';$('eDesc').value='';render();toast('✅')}
 }
 function editExp(id){
     var e=D.expenses.find(function(x){return x.id===id});if(!e)return;
     renderSelects();
-    $('eeId').value=id;$('eeProj').value=e.projectId||'Общие';$('eeCat').value=e.category||'Магазины';$('eeSum').value=e.amount;$('eeDesc').value=e.desc||'';
+    $('eeId').value=id;$('eeProj').value=e.projectId||'Общие';$('eeCat').value=e.category||'Магазины';$('eeSum').value=e.amount;$('eeDesc').value=e.desc||'';$('eeDate').value=e.date||'';
     showModal('editExp');
 }
 async function saveExp(){
     var id=$('eeId').value;
     var e=D.expenses.find(function(x){return x.id===id});if(!e)return;
-    e.projectId=$('eeProj').value;e.category=$('eeCat').value;e.amount=parseFloat($('eeSum').value)||0;e.desc=$('eeDesc').value;e.ts=now();
+    e.projectId=$('eeProj').value;e.category=$('eeCat').value;e.amount=parseFloat($('eeSum').value)||0;e.desc=$('eeDesc').value;e.date=$('eeDate').value||e.date;e.ts=now();
     if(await saveData()){hideModal('editExp');render();toast('✅')}
 }
 async function archiveExp(id){var e=D.expenses.find(function(x){return x.id===id});if(e){e._archived=true;e.ts=now();if(await saveData()){render();toast('📦')}}}
