@@ -79,6 +79,20 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 .empty span{font-size:40px;display:block;margin-bottom:10px}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;padding:12px 20px;border-radius:12px;display:none;z-index:300;border:1px solid #333}
 .loader{text-align:center;padding:40px;color:#999}
+.month-section{margin-bottom:14px}
+.month-header{font-size:16px;font-weight:700;letter-spacing:1px;margin-bottom:12px;text-align:center;padding:10px;background:#1a1a1a;border:1px solid #333;border-radius:12px}
+.month-total{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;margin-bottom:8px;border-radius:12px;font-weight:700;font-size:15px}
+.month-total.inc{background:rgba(76,175,80,.12);color:#4CAF50;border:1px solid rgba(76,175,80,.3)}
+.month-total.exp{background:rgba(239,83,80,.12);color:#ef5350;border:1px solid rgba(239,83,80,.3)}
+.cat-row{padding:10px 14px;background:#1a1a1a;border:1px solid #333;border-radius:10px;margin-bottom:6px}
+.cat-row .cat-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cat-row .cat-name{font-size:13px;font-weight:500}
+.cat-row .cat-sum{font-size:13px;font-weight:700}
+.cat-row .cat-bar{height:6px;background:#252525;border-radius:3px;overflow:hidden}
+.cat-row .cat-fill{height:100%;border-radius:3px}
+.cat-row .cat-fill.green{background:#4CAF50}
+.cat-row .cat-fill.red{background:#ef5350}
+.cat-row .cat-pct{font-size:10px;color:#999;margin-top:3px;text-align:right}
 </style>
 </head>
 <body>
@@ -117,7 +131,7 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 <button class="quick-btn" onclick="newProj()"><span>📋</span>Проект</button>
 <button class="quick-btn" onclick="showModal('addAsset')"><span>📦</span>Склад</button>
 </div>
-<div class="card"><div class="card-title">📁 По категориям</div><div id="hCats"></div></div>
+<div id="monthSummary"></div>
 <div class="card"><div class="card-title">📈 Последние</div><div id="hRecent"></div></div>
 </div>
 <!-- ПРОЕКТЫ -->
@@ -440,16 +454,65 @@ function renderHome(){
     $('hAss').textContent=fmt(tAss);
     $('hFree').textContent=fmt(tInc-tExp-tAss);
     
-    var cats={};exp.forEach(function(e){cats[e.category]=(cats[e.category]||0)+e.amount});
-    var sorted=Object.entries(cats).sort(function(a,b){return b[1]-a[1]}).slice(0,5);
-    $('hCats').innerHTML=sorted.length?sorted.map(function(c){return'<div class="list-item"><div class="row"><div class="title">'+c[0]+'</div><div class="amount red">'+fmt(c[1])+'</div></div></div>'}).join(''):'<div class="empty">Нет данных</div>';
+    renderCategorySummary(inc,exp,tInc,tExp);
     
-    var all=inc.map(function(i){return{t:'i',d:i.date||i.ts||'',data:i}}).concat(exp.map(function(e){return{t:'e',d:e.date||e.ts||'',data:e}})).sort(function(a,b){return b.d.localeCompare(a.d)}).slice(0,5);
+    var all=inc.map(function(i){return{t:'i',d:i.date||i.ts||'',data:i}}).concat(exp.map(function(e){return{t:'e',d:e.date||e.ts||'',data:e}})).sort(function(a,b){return b.d.localeCompare(a.d)});
     $('hRecent').innerHTML=all.length?all.map(function(x){
         var dt=fmtDate(x.data.date||x.data.ts||'');
         if(x.t==='i'){var p=D.projects.find(function(pr){return pr.id===x.data.projectId});return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+x.data.type+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount green">+'+fmt(x.data.amount)+'</div></div></div>'}
         return'<div class="list-item"><div class="row"><div><div class="title">'+x.data.category+'</div><div class="sub">'+(x.data.desc||'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount red">-'+fmt(x.data.amount)+'</div></div></div>'
     }).join(''):'<div class="empty"><span>📭</span>Пусто</div>';
+}
+
+var PER_LABELS={'all':'ВСЁ ВРЕМЯ','year':'ГОД','month':'МЕСЯЦ','week':'НЕДЕЛЯ','custom':'ПЕРИОД'};
+
+function renderCategorySummary(inc,exp,tInc,tExp){
+    // Доходы по проектам
+    var incByProj={};
+    inc.forEach(function(i){
+        var p=D.projects.find(function(pr){return pr.id===i.projectId});
+        var name=p?p.name:'Без проекта';
+        incByProj[name]=(incByProj[name]||0)+i.amount;
+    });
+    var incSorted=Object.entries(incByProj).sort(function(a,b){return b[1]-a[1]});
+    
+    // Расходы по категориям
+    var expByCat={};
+    exp.forEach(function(e){
+        expByCat[e.category]=(expByCat[e.category]||0)+e.amount;
+    });
+    var expSorted=Object.entries(expByCat).sort(function(a,b){return b[1]-a[1]});
+    
+    var label=PER_LABELS[period]||'ПЕРИОД';
+    var html='<div class="month-header">📊 ИТОГИ — '+label+'</div>';
+    
+    // ДОХОДЫ
+    html+='<div class="month-section">';
+    html+='<div class="month-total inc"><span>💰 ДОХОДЫ</span><span>'+fmt(tInc)+'</span></div>';
+    if(incSorted.length){
+        html+=incSorted.map(function(c){
+            var pct=tInc?Math.round(c[1]/tInc*100):0;
+            return'<div class="cat-row"><div class="cat-head"><div class="cat-name">'+c[0]+'</div><div class="cat-sum green">'+fmt(c[1])+'</div></div><div class="cat-bar"><div class="cat-fill green" style="width:'+pct+'%"></div></div><div class="cat-pct">'+pct+'%</div></div>';
+        }).join('');
+    }else{
+        html+='<div style="text-align:center;color:#999;padding:10px;font-size:12px">Нет доходов</div>';
+    }
+    html+='</div>';
+    
+    // РАСХОДЫ
+    html+='<div class="month-section">';
+    html+='<div class="month-total exp"><span>💸 РАСХОДЫ</span><span>'+fmt(tExp)+'</span></div>';
+    if(expSorted.length){
+        html+=expSorted.map(function(c){
+            var pct=tExp?Math.round(c[1]/tExp*100):0;
+            return'<div class="cat-row"><div class="cat-head"><div class="cat-name">'+c[0]+'</div><div class="cat-sum red">'+fmt(c[1])+'</div></div><div class="cat-bar"><div class="cat-fill red" style="width:'+pct+'%"></div></div><div class="cat-pct">'+pct+'%</div></div>';
+        }).join('');
+    }else{
+        html+='<div style="text-align:center;color:#999;padding:10px;font-size:12px">Нет расходов</div>';
+    }
+    html+='</div>';
+    
+    $('monthSummary').innerHTML=html;
 }
 
 function renderProj(){
