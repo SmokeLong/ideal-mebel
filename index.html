@@ -103,6 +103,8 @@ input,select{width:100%;padding:12px;background:#252525;border:1px solid #333;bo
 .arch-cat{display:flex;justify-content:space-between;padding:5px 14px;font-size:13px}
 .arch-cat .c-name{color:#999}
 .arch-cat .c-sum{color:#ef5350;font-weight:600}
+.acc-sub-label{font-size:11px;color:#999;margin:10px 0 6px;font-weight:600;letter-spacing:.3px}
+.acc-nested{border-top:1px solid #333;margin-top:10px}
 </style>
 </head>
 <body>
@@ -503,6 +505,48 @@ function renderSelects(){
 }
 
 // ========== ГЛАВНАЯ ==========
+function opsItem(x,isInc){
+    var dt=fmtDate(x.date||'');
+    if(isInc){
+        var p=D.projects.find(function(pr){return pr.id===x.projectId});
+        return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+x.type+(x.author?' • '+x.author:'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount green">+'+fmt(x.amount)+'</div></div></div>';
+    }
+    return'<div class="list-item"><div class="row"><div><div class="title">'+x.category+'</div><div class="sub">'+(x.desc||'')+(x.author?' • '+x.author:'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount red">-'+fmt(x.amount)+'</div></div></div>';
+}
+function opsByMonth(items,isInc){
+    var months={};
+    items.forEach(function(x){var m=(x.date||'').substring(0,7);if(!m)return;(months[m]=months[m]||[]).push(x)});
+    var keys=Object.keys(months).sort(function(a,b){return b.localeCompare(a)});
+    var out='';
+    keys.forEach(function(m){
+        var arr=months[m];var parts=m.split('-');
+        var mName=(MONTH_NAMES[parseInt(parts[1])-1]+' '+parts[0]).toUpperCase();
+        var tot=arr.reduce(function(s,x){return s+x.amount},0);
+        var by={};
+        arr.forEach(function(x){
+            var key=isInc?(function(){var p=D.projects.find(function(pr){return pr.id===x.projectId});return p?p.name:'Без проекта'})():x.category;
+            by[key]=(by[key]||0)+x.amount;
+        });
+        var bs=Object.entries(by).sort(function(a,b){return b[1]-a[1]});
+        out+='<div class="arch-month">';
+        out+='<div class="acc-header" onclick="toggleAcc(this)" style="padding:8px 0"><span class="acc-title" style="font-size:13px">'+mName+' · '+(isInc?'+':'−')+fmt(tot)+'</span><span class="acc-arrow">▼</span></div>';
+        out+='<div class="acc-body"><div class="acc-inner">';
+        bs.forEach(function(c){out+='<div class="arch-cat"><span class="c-name">'+c[0]+'</span><span class="c-sum" style="color:'+(isInc?'#4CAF50':'#ef5350')+'">'+(isInc?'+':'-')+fmt(c[1])+'</span></div>'});
+        out+='</div></div></div>';
+    });
+    return out;
+}
+function opsBlock(items,kind){
+    var isInc=kind==='inc';
+    var sorted=items.slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'')});
+    var h='<div class="acc-sub-label">📌 Последние операции'+(sorted.length>15?' <span style="color:#777;font-weight:400">(15 из '+sorted.length+')</span>':'')+'</div>';
+    sorted.slice(0,15).forEach(function(x){h+=opsItem(x,isInc)});
+    if(sorted.length>15){
+        h+='<div class="acc-header acc-nested" onclick="toggleAcc(this)"><span class="acc-title" style="font-size:13px">📂 Все '+(isInc?'доходы':'расходы')+' по месяцам</span><span class="acc-arrow">▼</span></div>';
+        h+='<div class="acc-body"><div class="acc-inner">'+opsByMonth(sorted,isInc)+'</div></div>';
+    }
+    return h;
+}
 function renderHome(){
     var start=getPerStart(),end=getPerEnd();
     var inc=D.income.filter(function(i){return!i._archived&&!i._deleted&&(period==='all'||((i.date||'')>=start&&(i.date||'')<=end))});
@@ -522,19 +566,8 @@ function renderHome(){
 
     // === ДОХОДЫ ===
     var ih='<div class="acc-total inc"><span>💰 ИТОГО</span><span>'+fmt(tInc)+'</span></div>';
-    var incByProj={};
-    inc.forEach(function(i){var p=D.projects.find(function(pr){return pr.id===i.projectId});var n=p?p.name:'Без проекта';incByProj[n]=(incByProj[n]||0)+i.amount});
-    var incSorted=Object.entries(incByProj).sort(function(a,b){return b[1]-a[1]});
-    if(incSorted.length){
-        incSorted.forEach(function(c){var pct=tInc?Math.round(c[1]/tInc*100):0;ih+='<div class="cat-row"><div class="cat-head"><div class="cat-name">'+c[0]+'</div><div class="cat-sum green">'+fmt(c[1])+'</div></div><div class="cat-bar"><div class="cat-fill green" style="width:'+pct+'%"></div></div><div class="cat-pct">'+pct+'%</div></div>'});
-    }
-    if(inc.length){
-        ih+='<div class="acc-sep"></div>';
-        inc.slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'')}).forEach(function(i){
-            var p=D.projects.find(function(pr){return pr.id===i.projectId});var dt=fmtDate(i.date||'');
-            ih+='<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+i.type+(i.author?' • '+i.author:'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount green">+'+fmt(i.amount)+'</div></div></div>';
-        });
-    }else{ih+='<div style="text-align:center;color:#999;padding:14px;font-size:12px">Нет доходов за период</div>'}
+    if(inc.length){ih+=opsBlock(inc,'inc')}
+    else{ih+='<div style="text-align:center;color:#999;padding:14px;font-size:12px">Нет доходов за период</div>'}
     $('homeIncome').innerHTML=ih;
 
     // === РАСХОДЫ ===
@@ -547,20 +580,23 @@ function renderHome(){
     }
     if(exp.length){
         eh+='<div class="acc-sep"></div>';
-        exp.slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'')}).forEach(function(e){
-            var dt=fmtDate(e.date||'');
-            eh+='<div class="list-item"><div class="row"><div><div class="title">'+e.category+'</div><div class="sub">'+(e.desc||'')+(e.author?' • '+e.author:'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount red">-'+fmt(e.amount)+'</div></div></div>';
-        });
+        eh+=opsBlock(exp,'exp');
     }else{eh+='<div style="text-align:center;color:#999;padding:14px;font-size:12px">Нет расходов за период</div>'}
     $('homeExpense').innerHTML=eh;
 
     // === ПОСЛЕДНИЕ ОПЕРАЦИИ ===
     var all=inc.map(function(i){return{t:'i',d:i.date||'',data:i}}).concat(exp.map(function(e){return{t:'e',d:e.date||'',data:e}})).sort(function(a,b){return b.d.localeCompare(a.d)});
-    $('homeRecent').innerHTML=all.length?all.map(function(x){
-        var dt=fmtDate(x.data.date||'');
-        if(x.t==='i'){var p=D.projects.find(function(pr){return pr.id===x.data.projectId});return'<div class="list-item"><div class="row"><div><div class="title">'+(p?p.name:'—')+'</div><div class="sub">'+x.data.type+(x.data.author?' • '+x.data.author:'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount green">+'+fmt(x.data.amount)+'</div></div></div>'}
-        return'<div class="list-item"><div class="row"><div><div class="title">'+x.data.category+'</div><div class="sub">'+(x.data.desc||'')+(x.data.author?' • '+x.data.author:'')+(dt?' • 📅 '+dt:'')+'</div></div><div class="amount red">-'+fmt(x.data.amount)+'</div></div></div>'
-    }).join(''):'<div class="empty"><span>📭</span>Нет операций</div>';
+    if(all.length){
+        var rh=all.length>15?'<div class="acc-sub-label">Показаны 15 последних из '+all.length+'</div>':'';
+        all.slice(0,15).forEach(function(x){rh+=opsItem(x.data,x.t==='i')});
+        if(all.length>15){
+            rh+='<div class="acc-header acc-nested" onclick="toggleAcc(this)"><span class="acc-title" style="font-size:13px">📂 Показать весь список ('+all.length+')</span><span class="acc-arrow">▼</span></div>';
+            rh+='<div class="acc-body"><div class="acc-inner">';
+            all.slice(15).forEach(function(x){rh+=opsItem(x.data,x.t==='i')});
+            rh+='</div></div>';
+        }
+        $('homeRecent').innerHTML=rh;
+    }else{$('homeRecent').innerHTML='<div class="empty"><span>📭</span>Нет операций</div>'}
 
     // === АРХИВ ===
     renderMonthlyArchive();
@@ -574,14 +610,15 @@ function renderMonthlyArchive(){
     allExp.forEach(function(e){var m=e.date.substring(0,7);if(!months[m])months[m]={inc:[],exp:[]};months[m].exp.push(e)});
     var d=new Date();
     var curMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    var sorted=Object.keys(months).filter(function(m){return m!==curMonth}).sort(function(a,b){return b.localeCompare(a)});
-    if(!sorted.length){$('homeArchive').innerHTML='<div style="text-align:center;color:#999;padding:14px;font-size:12px">Нет данных за прошлые месяцы</div>';return}
+    var sorted=Object.keys(months).sort(function(a,b){return b.localeCompare(a)});
+    if(!sorted.length){$('homeArchive').innerHTML='<div style="text-align:center;color:#999;padding:14px;font-size:12px">Нет данных</div>';return}
     var h='';
     sorted.forEach(function(m){
         var data=months[m];
         var parts=m.split('-');
         var mi=parseInt(parts[1])-1;
         var mName=(MONTH_NAMES[mi]+' '+parts[0]).toUpperCase();
+        var isCur=(m===curMonth);
         var tI=data.inc.reduce(function(s,i){return s+i.amount},0);
         var tE=data.exp.reduce(function(s,e){return s+e.amount},0);
         var fr=tI-tE;
@@ -592,8 +629,8 @@ function renderMonthlyArchive(){
         data.exp.forEach(function(e){expByCat[e.category]=(expByCat[e.category]||0)+e.amount});
         var expS=Object.entries(expByCat).sort(function(a,b){return b[1]-a[1]});
         h+='<div class="arch-month">';
-        h+='<div class="acc-header" onclick="toggleAcc(this)" style="padding:8px 0"><span class="acc-title" style="font-size:14px">'+mName+'</span><span class="acc-arrow">▼</span></div>';
-        h+='<div class="acc-body"><div class="acc-inner">';
+        h+='<div class="acc-header" onclick="toggleAcc(this)" style="padding:8px 0"><span class="acc-title" style="font-size:14px">'+mName+(isCur?' <span style="color:#8B7355;font-size:10px;font-weight:600">• ТЕКУЩИЙ</span>':'')+'</span><span class="acc-arrow">'+(isCur?'▲':'▼')+'</span></div>';
+        h+='<div class="acc-body'+(isCur?' open':'')+'"><div class="acc-inner">';
         h+='<div class="acc-total inc"><span>💰 Доходы ('+pc+' пр.)</span><span>'+fmt(tI)+'</span></div>';
         h+='<div class="acc-total exp"><span>💸 Расходы</span><span>'+fmt(tE)+'</span></div>';
         if(expS.length){
