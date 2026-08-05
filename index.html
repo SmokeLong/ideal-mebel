@@ -24,6 +24,7 @@
   --r:18px; --r-sm:12px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{max-width:100%;overflow-x:hidden}   /* страница не ездит вбок ни при каких обстоятельствах */
 body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
 .t-value,.item-amount,.pm-v,.hero .value,.cat-sum,.m-sum,.dl-sum{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -87,7 +88,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 10px}
 .tile .t-label{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted-2)}
-.tile .t-value{font-size:16px;font-weight:800;margin-top:5px;letter-spacing:-.4px}
+.tile .t-value{font-size:16px;font-weight:800;margin-top:5px;letter-spacing:-.4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
 .quick button{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 8px;border-radius:14px;
   border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:12px;font-weight:600}
@@ -204,10 +206,13 @@ input:focus,select:focus{outline:none;border-color:var(--brand)}
 .range-note{font-size:11px;color:var(--muted-2);margin:-6px 0 12px;text-align:center;letter-spacing:.2px}
 
 /* ── широкий экран: две колонки и человеческие отступы ── */
-.grid2{display:grid;gap:12px}
+/* minmax(0,1fr), а не 1fr: у элемента грида min-width по умолчанию auto, и карточка
+   не может стать уже своего содержимого — широкий график распирал её за край экрана */
+.grid2{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.grid2>.card{min-width:0}
 @media(min-width:820px){
   .content{max-width:1000px;padding:22px 24px 100px}
-  .grid2{grid-template-columns:1fr 1fr;align-items:stretch}
+  .grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}
   .grid2>.card{margin-bottom:0;display:flex;flex-direction:column}
   .hero{padding:26px}
   .hero .value{font-size:40px}
@@ -477,6 +482,12 @@ function fmtShort(n){
   if(a>=1000)return Math.round(n/1000)+'к';
   return String(Math.round(n));
 }
+/* в плитку миллионы целиком не влезают на телефоне — там компактно,
+   точные суммы всё равно стоят строкой под прибылью */
+function fmtTile(n){
+  if(Math.abs(n)>=1000000)return (n/1000000).toFixed(2).replace('.',',')+' млн ₽';
+  return fmt(n);
+}
 function now(){return new Date().toISOString()}
 function today(){return now().split('T')[0]}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -715,10 +726,15 @@ function monthsSeries(limit){
   if(limit&&keys.length>limit)keys=keys.slice(-limit);
   return keys.map(function(k){return{key:k,inc:m[k].inc,exp:m[k].exp,prof:m[k].inc-m[k].exp}});
 }
-function chartBars(series){
+/* доступная ширина под график: подстраиваемся под экран, а не растягиваем карточку */
+function availW(id){var el=$(id);var w=el?el.clientWidth:0;return w>60?w:320}
+function stepFor(n,W){var padL=6;return Math.max(30,(W-padL*2)/n)}   // ниже 30 px подписи месяцев слипаются
+
+function chartBars(series,W){
   if(!series.length)return'<div class="empty"><i>📊</i>Пока нет данных</div>';
-  var step=56,padL=6,h=170,top=22,bh=h-top-26;
-  var w=Math.max(series.length*step+padL*2,300);
+  var padL=6,h=170,top=22,bh=h-top-26;
+  var step=stepFor(series.length,W);
+  var w=Math.max(W,series.length*step+padL*2);
   var max=Math.max.apply(null,series.map(function(d){return Math.max(d.inc,d.exp)}))||1;
   var s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">';
   [0,.5,1].forEach(function(f){
@@ -726,7 +742,8 @@ function chartBars(series){
     s+='<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padL)+'" y2="'+y+'" stroke="#26292f" stroke-width="1"/>';
   });
   series.forEach(function(d,i){
-    var x=padL+i*step+step/2, bw=13, gap=3;
+    var bw=Math.max(6,Math.min(14,Math.round(step*.26))), gap=Math.max(2,Math.round(step*.06));
+    var x=padL+i*step+step/2;
     var ih=Math.max(2,d.inc/max*bh), eh=Math.max(2,d.exp/max*bh);
     s+='<rect x="'+(x-bw-gap/2)+'" y="'+(top+bh-ih)+'" width="'+bw+'" height="'+ih+'" rx="3" fill="#4ade80" opacity=".92"/>';
     s+='<rect x="'+(x+gap/2)+'" y="'+(top+bh-eh)+'" width="'+bw+'" height="'+eh+'" rx="3" fill="#f87171" opacity=".92"/>';
@@ -737,10 +754,11 @@ function chartBars(series){
   s+='</svg>';
   return s;
 }
-function chartProfit(series){
+function chartProfit(series,W){
   if(series.length<2)return'<div class="empty"><i>📈</i>Нужно минимум два месяца</div>';
-  var step=56,padL=6,h=170,top=18,ch=h-top-26;
-  var w=Math.max(series.length*step+padL*2,300);
+  var padL=6,h=170,top=18,ch=h-top-26;
+  var step=stepFor(series.length,W);
+  var w=Math.max(W,series.length*step+padL*2);
   var vals=series.map(function(d){return d.prof});
   var max=Math.max.apply(null,vals),min=Math.min.apply(null,vals);
   if(max===min){max=max+1;min=min-1}
@@ -825,14 +843,14 @@ function renderHome(){
   $('hRange').textContent=rangeText();
   $('hProf').textContent=fmt(prof);
   $('hProf').className='value '+(prof>=0?'green':'red');
-  $('hInc').textContent=fmt(tInc);
-  $('hExp').textContent=fmt(tExp);
+  $('hInc').textContent=fmtTile(tInc);
+  $('hExp').textContent=fmtTile(tExp);
 
   /* третья плитка: пока склад пуст, «свободные» = «прибыль», показывать одно и то же
      дважды незачем — вместо этого показываем рентабельность. Появится склад — вернётся. */
   if(tAss>0){
     $('hThirdLabel').textContent='Свободные';
-    $('hFree').textContent=fmt(free);
+    $('hFree').textContent=fmtTile(free);
     $('hFree').className='t-value '+(free>=0?'green':'red');
   }else{
     var rent=tInc?Math.round(prof/tInc*100):0;
@@ -861,8 +879,8 @@ function renderHome(){
 
   // графики
   var series=monthsSeries(12);
-  $('chartBars').innerHTML=chartBars(series);
-  $('chartProfit').innerHTML=chartProfit(series);
+  $('chartBars').innerHTML=chartBars(series,availW('chartBars'));
+  $('chartProfit').innerHTML=chartProfit(series,availW('chartProfit'));
   var byCat={};
   exp.forEach(function(e){byCat[e.category]=(byCat[e.category]||0)+e.amount});
   var catS=Object.entries(byCat).sort(function(a,b){return b[1]-a[1]});
@@ -1204,6 +1222,13 @@ function backup(){
   a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));
   a.download='ideal_mebel_backup_'+today()+'.json';a.click();toast('💾 Бэкап сохранён');
 }
+
+/* поворот экрана / смена размера окна — перерисовать графики под новую ширину */
+var __rt;
+window.addEventListener('resize',function(){
+  clearTimeout(__rt);
+  __rt=setTimeout(function(){if(curPage==='home'&&D.income)renderHome()},180);
+});
 
 /* закрытие модалки тапом по фону */
 document.querySelectorAll('.modal').forEach(function(m){
