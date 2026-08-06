@@ -83,8 +83,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   border:1px solid rgba(169,143,107,.32);border-radius:22px;padding:20px;margin-bottom:12px}
 .hero .label{font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--brand)}
 .hero .value{font-size:36px;font-weight:800;letter-spacing:-1.2px;margin-top:6px;line-height:1}
-.hero .delta{display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:6px 11px;border-radius:999px;
-  font-size:13px;font-weight:700;background:var(--surface-2);border:1px solid var(--line)}
+.hero .delta{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 9px;margin-top:12px;padding:9px 13px;
+  border-radius:16px;font-size:13px;font-weight:700;background:var(--surface-2);border:1px solid var(--line)}
+.hero .delta span{white-space:nowrap}   /* число и ₽ не разрываются переносом */
 .hero .hint{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 10px}
@@ -871,9 +872,9 @@ function renderHome(){
     var pProf=pInc-pExp, diff=prof-pProf;
     if(pProf!==0||prof!==0){
       var up=diff>=0;
-      dh='<div class="delta" style="color:'+(up?'var(--green)':'var(--red)')+'" title="'+fmtDate(pr.s)+' — '+fmtDate(pr.e)+': '+fmt(pProf)+'">'+
-         (up?'▲':'▼')+' '+fmt(Math.abs(diff))+
-         ' <span style="color:var(--muted);font-weight:600">к '+pr.name+' ('+fmt(pProf)+')</span></div>';
+      dh='<div class="delta" style="color:'+(up?'var(--green)':'var(--red)')+'" title="'+fmtDate(pr.s)+' — '+fmtDate(pr.e)+'">'+
+         '<span>'+(up?'▲':'▼')+' '+fmt(Math.abs(diff))+'</span>'+
+         '<span style="color:var(--muted);font-weight:600">к '+pr.name+': '+fmt(pProf)+'</span></div>';
     }
   }
   $('hDelta').innerHTML=dh;
