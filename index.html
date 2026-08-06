@@ -478,6 +478,20 @@ var MONTH_SHORT=['янв','фев','мар','апр','май','июн','июл',
 var EXP_CATS=['Магазины','Закуп материалов','Амортизация предприятия','Улучшение цеха','Оборудование','Доставка','Бензин','Реклама','Налоги','Аренда','Водоканал','Электроэнергия','Уголь','Прочие','ЗП Саша','ЗП Рома','ЗП Леха','ЗП Ара','ЗП Коробов','Фирма'];
 var PIE=['#A98F6B','#4ade80','#f87171','#60a5fa','#fbbf24','#c084fc','#2dd4bf','#fb923c'];
 
+/* ── ЗП учредителей: константы чистой прибыли ─────────────────────────────
+   «ЗП Саша / ЗП Рома / ЗП Леха» — это доли учредителей, а не расход бизнеса.
+   Вносим их как расход (так привычнее и вся история сохраняется), но нигде
+   НЕ вычитаем: прибыль считается ДО этих выплат, и в итоги расходов, в
+   структуру расходов и в графики они не попадают. Остальные ЗП (Ара,
+   Коробов) — наёмные, обычный расход.                                     */
+var OWNER_PAY=['ЗП Саша','ЗП Рома','ЗП Леха'];
+function normCat(s){return String(s==null?'':s).toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ').trim()}
+var OWNER_SET={};OWNER_PAY.forEach(function(c){OWNER_SET[normCat(c)]=1});
+function isOwnerPay(e){return OWNER_SET[normCat(e&&e.category)]===1}
+function opEx(list){return list.filter(function(e){return!isOwnerPay(e)})}   // операционные расходы
+function ownerSum(list){return list.reduce(function(s,e){return s+(isOwnerPay(e)?(e.amount||0):0)},0)}
+var OWNER_NOTE='ЗП учредителей: платится из прибыли, в расходы не входит';
+
 function $(id){return document.getElementById(id)}
 function fmt(n){return(Math.round(n)||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'}
 function fmtShort(n){
@@ -724,7 +738,7 @@ function monthsSeries(limit){
   var m={};
   D.income.filter(function(i){return!i._archived&&!i._deleted&&i.date}).forEach(function(i){
     var k=i.date.substring(0,7);(m[k]=m[k]||{inc:0,exp:0}).inc+=i.amount});
-  D.expenses.filter(function(e){return!e._archived&&!e._deleted&&e.date}).forEach(function(e){
+  D.expenses.filter(function(e){return!e._archived&&!e._deleted&&e.date&&!isOwnerPay(e)}).forEach(function(e){
     var k=e.date.substring(0,7);(m[k]=m[k]||{inc:0,exp:0}).exp+=e.amount});
   var keys=Object.keys(m).sort();
   if(limit&&keys.length>limit)keys=keys.slice(-limit);
@@ -830,15 +844,18 @@ function opsItem(x,isInc){
       '<div class="item-sub">'+sub(esc(x.type||''),esc(x.author||''),dt)+'</div></div>'+
       '<div class="item-amount green">+'+fmt(x.amount)+'</div></div></div>';
   }
-  return'<div class="item"><div class="item-row"><div><div class="item-title">'+esc(x.category||'')+'</div>'+
-    '<div class="item-sub">'+sub(esc(x.desc||''),esc(x.author||''),dt)+'</div></div>'+
-    '<div class="item-amount red">−'+fmt(x.amount)+'</div></div></div>';
+  var own=isOwnerPay(x);
+  return'<div class="item"'+(own?' title="'+OWNER_NOTE+'"':'')+'><div class="item-row"><div><div class="item-title">'+esc(x.category||'')+'</div>'+
+    '<div class="item-sub">'+sub(esc(x.desc||''),esc(x.author||''),dt,own?'из прибыли':'')+'</div></div>'+
+    '<div class="item-amount'+(own?'" style="color:var(--muted)">':' red">−')+fmt(x.amount)+'</div></div></div>';
 }
 function renderHome(){
   var start=getPerStart(),end=getPerEnd();
   function inPer(d){return period==='all'||((d||'')>=start&&(d||'')<=end)}
   var inc=D.income.filter(function(i){return!i._archived&&!i._deleted&&inPer(i.date)});
-  var exp=D.expenses.filter(function(e){return!e._archived&&!e._deleted&&inPer(e.date)});
+  var expAll=D.expenses.filter(function(e){return!e._archived&&!e._deleted&&inPer(e.date)});
+  var exp=opEx(expAll);                       // ЗП учредителей — не расход, см. OWNER_PAY
+  var tOwner=ownerSum(expAll);
   var tInc=inc.reduce(function(s,i){return s+i.amount},0);
   var tExp=exp.reduce(function(s,e){return s+e.amount},0);
   var tAss=D.assets.reduce(function(s,a){return s+(a.qty>0?a.cost:0)},0);
@@ -861,14 +878,14 @@ function renderHome(){
     $('hThirdLabel').textContent='Прибыль %';
     $('hFree').textContent=rent+' %';
     $('hFree').className='t-value '+(rent>=0?'green':'red');
-    $('hThirdLabel').parentNode.title='(доходы − расходы) ÷ доходы. Сколько остаётся с каждого пришедшего рубля. Считается по деньгам за период, поэтому на коротких отрезках цифра шумная.';
+    $('hThirdLabel').parentNode.title='(доходы − расходы) ÷ доходы. ЗП учредителей в расходы не входит — она платится уже из этой прибыли. Считается по деньгам за период, поэтому на коротких отрезках цифра шумная.';
   }
 
   // сравнение с сопоставимым прошлым периодом
   var pr=getPrevRange(),dh='';
   if(pr){
     var pInc=D.income.filter(function(i){return!i._archived&&!i._deleted&&(i.date||'')>=pr.s&&(i.date||'')<=pr.e}).reduce(function(s,i){return s+i.amount},0);
-    var pExp=D.expenses.filter(function(e){return!e._archived&&!e._deleted&&(e.date||'')>=pr.s&&(e.date||'')<=pr.e}).reduce(function(s,e){return s+e.amount},0);
+    var pExp=opEx(D.expenses.filter(function(e){return!e._archived&&!e._deleted&&(e.date||'')>=pr.s&&(e.date||'')<=pr.e})).reduce(function(s,e){return s+e.amount},0);
     var pProf=pInc-pExp, diff=prof-pProf;
     if(pProf!==0||prof!==0){
       var up=diff>=0;
@@ -879,6 +896,7 @@ function renderHome(){
   }
   $('hDelta').innerHTML=dh;
   $('hHint').innerHTML='Доходы '+fmt(tInc)+' − расходы '+fmt(tExp)+
+    (tOwner>0?'<br>Сверх того ЗП учредителей '+fmt(tOwner)+' — платится из этой прибыли, в расходы не входит.':'')+
     (tAss>0?'<br>В материалах заморожено '+fmt(tAss)+' — на столько прибыль больше свободных денег.':'');
 
   // графики
@@ -916,7 +934,9 @@ function renderHome(){
   }).join(''):'<div class="empty"><i>📋</i>Нет оплат за период</div>';
 
   // последние операции
-  var all=inc.map(function(i){return{t:'i',d:i.date||'',x:i}}).concat(exp.map(function(e){return{t:'e',d:e.date||'',x:e}}))
+  /* лента операций показывает ВСЁ, включая ЗП учредителей (помечена «из прибыли»):
+     это лента движений, а не итог */
+  var all=inc.map(function(i){return{t:'i',d:i.date||'',x:i}}).concat(expAll.map(function(e){return{t:'e',d:e.date||'',x:e}}))
     .sort(function(a,b){return b.d.localeCompare(a.d)});
   if(all.length){
     var rh=all.length>15?'<div class="item-sub" style="margin:0 0 8px 4px">Показаны 15 последних из '+all.length+'</div>':'';
@@ -933,9 +953,10 @@ function renderHome(){
 function renderArchive(){
   var m={};
   D.income.filter(function(i){return!i._archived&&!i._deleted&&i.date}).forEach(function(i){
-    var k=i.date.substring(0,7);(m[k]=m[k]||{inc:[],exp:[]}).inc.push(i)});
+    var k=i.date.substring(0,7);(m[k]=m[k]||{inc:[],exp:[],own:0}).inc.push(i)});
   D.expenses.filter(function(e){return!e._archived&&!e._deleted&&e.date}).forEach(function(e){
-    var k=e.date.substring(0,7);(m[k]=m[k]||{inc:[],exp:[]}).exp.push(e)});
+    var k=e.date.substring(0,7);var b=(m[k]=m[k]||{inc:[],exp:[],own:0});
+    if(isOwnerPay(e))b.own+=e.amount; else b.exp.push(e)});
   var d=new Date(),cur=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   var keys=Object.keys(m).sort(function(a,b){return b.localeCompare(a)});
   if(!keys.length){$('homeArchive').innerHTML='<div class="empty"><i>📅</i>Нет данных</div>';return}
@@ -956,6 +977,7 @@ function renderArchive(){
     h+='<div class="total-row exp"><span>Расходы</span><span>'+fmt(tE)+'</span></div>';
     cs.forEach(function(c){h+='<div class="arch-cat"><span class="c-name">'+esc(c[0])+'</span><span class="red" style="font-weight:600">−'+fmt(c[1])+'</span></div>'});
     h+='<div class="total-row free" style="margin-top:10px;color:'+(fr>=0?'var(--green)':'var(--red)')+'"><span>Свободные</span><span>'+fmt(fr)+'</span></div>';
+    if(v.own>0)h+='<div class="arch-cat" style="margin-top:4px" title="'+OWNER_NOTE+'"><span class="c-name">из них ЗП учредителей</span><span style="font-weight:600;color:var(--muted)">'+fmt(v.own)+'</span></div>';
     h+='</div></div></div>';
   });
   $('homeArchive').innerHTML=h;
@@ -1023,7 +1045,7 @@ function viewProj(id){
   $('pvTitle').textContent=p.name;
   var pays=D.income.filter(function(i){return i.projectId===id&&!i._deleted}).sort(function(a,b){return(b.date||'').localeCompare(a.date||'')});
   var costs=D.expenses.filter(function(e){return e.projectId===id&&!e._deleted}).sort(function(a,b){return(b.date||'').localeCompare(a.date||'')});
-  var tc=costs.reduce(function(s,e){return s+e.amount},0);
+  var tc=opEx(costs).reduce(function(s,e){return s+e.amount},0);   // ЗП учредителей не расход проекта
   var pct=p.sum?Math.min(100,Math.round(p.paid/p.sum*100)):0;
   var h='<div class="proj-money" style="margin-top:0">'+
     '<div class="pm"><div class="pm-l">Договор</div><div class="pm-v">'+fmt(p.sum)+'</div></div>'+
@@ -1043,9 +1065,10 @@ function viewProj(id){
     :'<div class="empty" style="padding:18px"><i>💸</i>Оплат нет</div>';
   h+='<div class="sep"></div><div class="section-title">Расходы по проекту · '+fmt(tc)+'</div>';
   h+=costs.length?costs.map(function(e){
-      return'<div class="item"><div class="item-row"><div><div class="item-title">'+esc(e.category)+'</div>'+
-      '<div class="item-sub">'+sub(esc(e.desc||''),fmtDate(e.date))+'</div></div>'+
-      '<div class="item-amount red">−'+fmt(e.amount)+'</div></div></div>'}).join('')
+      var own=isOwnerPay(e);
+      return'<div class="item"'+(own?' title="'+OWNER_NOTE+'"':'')+'><div class="item-row"><div><div class="item-title">'+esc(e.category)+'</div>'+
+      '<div class="item-sub">'+sub(esc(e.desc||''),fmtDate(e.date),own?'из прибыли':'')+'</div></div>'+
+      '<div class="item-amount'+(own?'" style="color:var(--muted)">':' red">−')+fmt(e.amount)+'</div></div></div>'}).join('')
     :'<div class="empty" style="padding:18px"><i>🧾</i>Расходов нет</div>';
   if(p.sum){
     var marg=p.paid-tc;
@@ -1062,7 +1085,9 @@ function groupByMonth(list,isInc){
   list.forEach(function(x){var k=(x.date||'').substring(0,7)||'—';(m[k]=m[k]||[]).push(x)});
   var keys=Object.keys(m).sort(function(a,b){return b.localeCompare(a)});
   return keys.map(function(k){
-    var arr=m[k],t=arr.reduce(function(s,x){return s+x.amount},0);
+    /* в расходах ЗП учредителей в месячный итог не идёт — иначе итог месяца
+       разошёлся бы с прибылью на главной; сами строки остаются в списке */
+    var arr=m[k],t=arr.reduce(function(s,x){return s+((!isInc&&isOwnerPay(x))?0:x.amount)},0);
     return'<div class="month-head"><span>'+(k==='—'?'Без даты':monthLabel(k))+'</span>'+
       '<span class="m-sum '+(isInc?'green':'red')+'">'+(isInc?'+':'−')+fmt(t)+'</span></div>'+arr.map(function(x){
         return isInc?incItem(x):expItem(x)}).join('');
@@ -1080,9 +1105,10 @@ function incItem(i){
 }
 function expItem(e){
   var dt=fmtDate(e.date||e.ts||'');
-  return'<div class="item"><div class="item-row"><div><div class="item-title">'+esc(e.category||'')+'</div>'+
-    '<div class="item-sub">'+sub(esc(e.desc||''),esc(e.author||''),dt)+'</div></div>'+
-    '<div class="item-amount red">−'+fmt(e.amount)+'</div></div><div class="actions">'+
+  var own=isOwnerPay(e);
+  return'<div class="item"'+(own?' title="'+OWNER_NOTE+'"':'')+'><div class="item-row"><div><div class="item-title">'+esc(e.category||'')+'</div>'+
+    '<div class="item-sub">'+sub(esc(e.desc||''),esc(e.author||''),dt,own?'из прибыли':'')+'</div></div>'+
+    '<div class="item-amount'+(own?'" style="color:var(--muted)">':' red">−')+fmt(e.amount)+'</div></div><div class="actions">'+
     (e._deleted||e._archived?'<button class="act green" onclick="restoreExp(\''+e.id+'\')">♻️ Вернуть</button>':
       '<button class="act" onclick="editExp(\''+e.id+'\')">✏️</button><button class="act" onclick="archiveExp(\''+e.id+'\')">📦</button><button class="act red" onclick="delExp(\''+e.id+'\')">🗑</button>')+
     '</div></div>';
@@ -1112,10 +1138,14 @@ function renderExp(){
   if(q)list=list.filter(function(e){
     return[(e.category||''),(e.desc||''),(e.author||'')].join(' ').toLowerCase().indexOf(q)>-1});
   list.sort(function(a,b){return(b.date||b.ts||'').localeCompare(a.date||a.ts||'')});
-  var t=list.reduce(function(s,e){return s+e.amount},0);
+  /* итог и средняя — только по операционным расходам; ЗП учредителей идёт
+     отдельной строкой, чтобы цифра сходилась с прибылью на главной */
+  var op=opEx(list),own=ownerSum(list);
+  var t=op.reduce(function(s,e){return s+e.amount},0);
   $('expTotal').textContent='−'+fmt(t);
-  $('expCount').innerHTML=plural(list.length,'запись','записи','записей')+
-    (list.length?'<br>средняя '+fmt(t/list.length):'');
+  $('expCount').innerHTML=plural(op.length,'запись','записи','записей')+
+    (op.length?'<br>средняя '+fmt(t/op.length):'')+
+    (own>0?'<br><span title="'+OWNER_NOTE+'">+ ЗП учредителей '+fmt(own)+' (из прибыли)</span>':'');
   $('expList').innerHTML=list.length?groupByMonth(list,false):'<div class="empty"><i>📭</i>'+(q?'Ничего не найдено':'Пусто')+'</div>';
 }
 
