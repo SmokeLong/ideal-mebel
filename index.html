@@ -521,7 +521,6 @@ input:focus,select:focus{outline:none;border-color:var(--brand)}
 
 <div class="modal" id="m-addInc"><div class="modal-box">
   <div class="modal-head"><div class="modal-title">Записать доход</div><button class="modal-close" onclick="hideModal('addInc')">✕</button></div>
-  <div class="field"><label>Автор</label><input id="iAuthor"></div>
   <div class="field"><label>Проект</label><select id="iProj"></select></div>
   <div class="field"><label>Сумма</label><input type="number" id="iSum" inputmode="decimal"></div>
   <div class="field"><label>Тип</label><select id="iType"><option>Предоплата</option><option>Частичная</option><option>Финальная</option><option>Фирма</option></select></div>
@@ -1715,7 +1714,7 @@ async function addInc(){
   if(!sum)return toast('❌ Введите сумму');
   if(!$('iProj').value)return toast('❌ Сначала создайте проект');   // не плодим доход без привязки
   D.income.push({id:'I'+Date.now(),projectId:$('iProj').value,amount:sum,type:$('iType').value,
-    author:$('iAuthor').value,date:$('iDate').value||today(),ts:now()});
+    date:$('iDate').value||today(),ts:now()});
   if(await saveData()){$('iSum').value='';hideModal('addInc');fix();render();toast('✅ Доход записан')}
 }
 function editInc(id){
