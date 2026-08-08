@@ -108,16 +108,25 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   font-size:12.5px;color:var(--muted);line-height:1.45}
 .sum-head .sh-note:empty{display:none}
 
-/* сроки: сводка на странице проектов */
-.term-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin-bottom:12px}
-.term-cell{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 11px;min-width:0}
-.term-cell .tv{font-size:19px;font-weight:800;letter-spacing:-.3px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.term-cell .tl{font-size:11px;color:var(--muted-2);margin-top:2px;line-height:1.3}
-.term-bar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--surface-2);margin:4px 0 8px}
+/* Сроки. Было: auto-fit давал три плитки в ряд и одну сиротой на второй строке,
+   легенда рвалась в три места, заголовки капсом переносились. Стало: ровная
+   сетка 2×2, легенда столбиком, воздух между блоками. */
+.term-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.term-cell{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;min-width:0}
+.term-cell .tv{font-size:22px;font-weight:800;letter-spacing:-.4px;font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.1}
+.term-cell .tl{font-size:12px;color:var(--muted-2);margin-top:4px;line-height:1.35}
+.term-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--surface-2);margin-bottom:10px}
 .term-bar i{display:block;height:100%}
-.term-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--muted);margin-bottom:4px}
-.term-legend span{display:flex;align-items:center;gap:5px}
-.term-legend b{width:9px;height:9px;border-radius:2px;display:block}
+.term-legend{display:grid;gap:7px;font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.term-legend span{display:flex;align-items:center;gap:8px}
+.term-legend b{width:10px;height:10px;border-radius:3px;display:block;flex:0 0 auto}
+.term-legend i{margin-left:auto;font-style:normal;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.term-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+.term-warn{display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:11px 13px;border-radius:11px;
+  background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.22);font-size:12.5px;line-height:1.5;color:var(--amber)}
+.term-warn b{flex:0 0 auto;font-size:14px;line-height:1.3}
+#termBlock .acc-head{padding:12px 0}
+#termBlock .acc-title{text-transform:none;letter-spacing:0;font-size:14px}
 .dl-late{color:var(--red);font-weight:700}
 .dl-ok{color:var(--green);font-weight:700}
 /* переносим на вторую строку, а не прокручиваем вбок:
@@ -139,7 +148,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .hero .delta{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 9px;margin-top:12px;padding:9px 13px;
   border-radius:16px;font-size:13px;font-weight:700;background:var(--surface-2);border:1px solid var(--line)}
 .hero .delta span{white-space:nowrap}   /* число и ₽ не разрываются переносом */
-.hero .hint{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5}
+/* Подпись под главной цифрой была сплошной простынёй в 5 строк — на телефоне
+   читается тяжело. Теперь это разнесённые строки «что» → «сколько». */
+.hero .hint{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
+.hero .hint .lead{color:var(--text);font-weight:600;line-height:1.45;margin-bottom:12px}
+.hero .hint .lead b{color:var(--brand)}
+.hint-rows{display:grid;gap:9px;padding-top:11px;border-top:1px solid var(--line)}
+.hint-rows .hr-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.hint-rows .hr-k{color:var(--muted);min-width:0}
+.hint-rows .hr-v{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--text)}
+.hint-rows .hr-row.acc .hr-k,.hint-rows .hr-row.acc .hr-v{color:var(--brand)}
+.hint-rows .hr-note{color:var(--muted-2);font-size:12px;line-height:1.45;margin-top:-2px}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 10px}
 .tile .t-label{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted-2);
@@ -1025,10 +1044,18 @@ function renderHome(){
   }
   $('hDelta').innerHTML=dh;
   var rent=tInc?Math.round(prof/tInc*100):0;
-  $('hHint').innerHTML='<b>Столько денег не разобрано на сегодня</b> — за всё время, период на эту цифру не влияет.'+
-    '<br>За период: доходы '+fmt(tInc)+' − расходы '+fmt(tExp)+' = прибыль '+fmt(prof)+(tInc?' · рентабельность '+rent+' %':'')+
-    (tOwner>0?'<br>Учредители забрали за период '+fmt(tOwner)+' — это не расход, а распределение прибыли.':'')+
-    (tAss>0?'<br>В материалах заморожено '+fmt(tAss)+'.':'');
+  function row(k,v,cls){return'<div class="hr-row'+(cls?' '+cls:'')+'"><span class="hr-k">'+k+'</span><span class="hr-v">'+v+'</span></div>'}
+  $('hHint').innerHTML=
+    '<div class="lead">Столько денег не разобрано на сегодня. Это <b>остаток за всё время</b>, выбранный период на него не влияет.</div>'+
+    '<div class="hint-rows">'+
+      '<div class="hr-note">За '+rangeText().toLowerCase()+':</div>'+
+      row('Доходы',fmt(tInc))+
+      row('Расходы',fmt(tExp))+
+      row('Прибыль'+(tInc?' · рентабельность '+rent+' %':''),fmt(prof),'acc')+
+      (tOwner>0?row('Забрали учредители','−'+fmt(tOwner))+
+        '<div class="hr-note">Это не расход, а распределение прибыли.</div>':'')+
+      (tAss>0?row('Заморожено в материалах',fmt(tAss)):'')+
+    '</div>';
 
   // графики
   var series=monthsSeries(12);
@@ -1241,19 +1268,19 @@ function renderTerms(){
      '<i style="width:'+pc(w30)+';background:var(--brand)"></i>'+
      '<i style="width:'+pc(wRest)+';background:var(--red)"></i></div>';
   h+='<div class="term-legend">'+
-     '<span><b style="background:var(--green)"></b>до 2 недель · '+w14+'</span>'+
-     '<span><b style="background:var(--brand)"></b>2 недели — месяц · '+w30+'</span>'+
-     '<span><b style="background:var(--red)"></b>дольше месяца · '+wRest+'</span></div>';
+     '<span><b style="background:var(--green)"></b>до 2 недель<i>'+w14+'</i></span>'+
+     '<span><b style="background:var(--brand)"></b>2 недели — месяц<i>'+w30+'</i></span>'+
+     '<span><b style="background:var(--red)"></b>дольше месяца<i>'+wRest+'</i></span></div>';
   var withPause=done.filter(function(x){return x.t.paused>0}).length;
-  h+='<div class="item-sub" style="margin:8px 0 0">За последние '+TERM_MONTHS+' месяца сдано '+
+  h+='<div class="term-note">За последние '+TERM_MONTHS+' месяца сдано '+
      plural(done.length,'проект','проекта','проектов')+'. Считаем от начала работы до дня, когда получен остаток, минус паузы.'+
      (withPause?' У '+plural(withPause,'проекта','проектов','проектов')+' пауза вычтена.':'')+
      '</div>';
 
   var late=done.slice().sort(function(a,b){return b.t.days-a.t.days}).filter(function(x){return x.t.days>30}).slice(0,5);
   if(late.length){
-    h+='<div class="acc-head" style="margin-top:10px" onclick="toggleAcc(this)"><span class="acc-title">Дольше месяца ('+
-       done.filter(function(x){return x.t.days>30}).length+')</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div class="acc-inner">';
+    h+='<div class="acc-head" onclick="toggleAcc(this)"><span class="acc-title">Дольше месяца · '+
+       done.filter(function(x){return x.t.days>30}).length+'</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div class="acc-inner">';
     late.forEach(function(x){
       h+='<div class="cat-row"><div class="cat-head"><span class="cat-name">'+esc(x.p.name||'—')+'</span>'+
          '<span class="cat-sum red">'+x.t.days+' дн</span></div>'+
@@ -1264,8 +1291,8 @@ function renderTerms(){
   }
   if(running.length){
     var over=running.filter(function(x){return x.t.days>30}).length;
-    h+='<div class="acc-head" style="margin-top:6px" onclick="toggleAcc(this)"><span class="acc-title">В работе сейчас · '+running.length+
-       (over?' · дольше месяца '+over:'')+'</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div class="acc-inner">';
+    h+='<div class="acc-head" onclick="toggleAcc(this)"><span class="acc-title">В работе · '+running.length+
+       (over?'<span style="color:var(--red)"> · дольше месяца '+over+'</span>':'')+'</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div class="acc-inner">';
     running.sort(function(a,b){return b.t.days-a.t.days}).forEach(function(x){
       var dl=x.p.deadline?String(x.p.deadline).substring(0,10):'';
       var pz=isPaused(x.p);
@@ -1281,8 +1308,8 @@ function renderTerms(){
     h+='</div></div>';
   }
   var noDl=D.projects.filter(function(p){return!p._deleted&&p.status==='active'&&!p.deadline}).length;
-  if(noDl)h+='<div class="item-sub" style="margin-top:10px;color:var(--amber)">⚠ У '+plural(noDl,'проекта','проектов','проектов')+
-    ' в работе не заполнен срок сдачи. Пока он пустой, «сдали вовремя» считать не из чего.</div>';
+  if(noDl)h+='<div class="term-warn"><b>⚠</b><span>У '+plural(noDl,'проекта','проектов','проектов')+
+    ' в работе не заполнен срок сдачи. Пока он пустой, «сдали вовремя» считать не из чего.</span></div>';
   $('termBlock').innerHTML=h;
 }
 
@@ -1643,6 +1670,16 @@ document.querySelectorAll('.modal').forEach(function(m){
 
 /* СТАРТ */
 updateFab();
+/* Поля периода заполняем сразу текущим месяцем. Пустой date-инпут на айфоне
+   схлопывается в узкую полоску и «расправляется» только после первого тапа —
+   выглядит как сломанная вёрстка. С готовым значением он всегда одной ширины.
+   Период при этом НЕ переключается: даты просто предложены, пока их не тронут. */
+function prefillDates(){
+  var d=new Date();
+  $('perFrom').value=iso(new Date(d.getFullYear(),d.getMonth(),1));
+  $('perTo').value=today();
+}
+prefillDates();
 loadData(true);
 setInterval(loadData,30000);
 </script>
