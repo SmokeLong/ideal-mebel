@@ -121,6 +121,24 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .term-legend span{display:flex;align-items:center;gap:8px}
 .term-legend b{width:10px;height:10px;border-radius:3px;display:block;flex:0 0 auto}
 .term-legend i{margin-left:auto;font-style:normal;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+/* выплаты учредителям под структурой расходов — приглушённо, чтобы не путались
+   с тратами, но были видны там же, где на них смотрят */
+.fp-list{max-height:58vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.fp-row{padding:11px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:7px;
+  background:var(--surface-2);cursor:pointer}
+.fp-row:active{border-color:var(--brand)}
+.fp-name{font-size:15px;font-weight:650;line-height:1.3}
+
+.own-block{margin-top:16px;padding-top:13px;border-top:1px dashed var(--line)}
+.own-head{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:700;
+  color:var(--muted);letter-spacing:.3px;margin-bottom:9px}
+.own-head span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.own-row{display:flex;justify-content:space-between;gap:12px;font-size:14px;color:var(--muted-2);
+  padding:5px 0;border-bottom:1px solid var(--line-2)}
+.own-row:last-of-type{border-bottom:0}
+.own-row span:last-child{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.own-note{font-size:11.5px;color:var(--muted-2);opacity:.85;line-height:1.4;margin-top:8px}
+
 .term-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:14px}
 .term-warn{display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:11px 13px;border-radius:11px;
   background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.22);font-size:12.5px;line-height:1.5;color:var(--amber)}
@@ -511,13 +529,19 @@ input:focus,select:focus{outline:none;border-color:var(--brand)}
   <button class="btn btn-green" onclick="addInc()">Записать доход</button>
 </div></div>
 
+<div class="modal" id="m-findProj"><div class="modal-box">
+  <div class="modal-head"><div class="modal-title">Найти проект</div><button class="modal-close" onclick="hideModal('findProj')">✕</button></div>
+  <div class="search"><input id="fpQ" placeholder="Название, клиент или адрес" oninput="renderFindProj()"></div>
+  <div id="fpList" class="fp-list"></div>
+</div></div>
+
 <div class="modal" id="m-addExp"><div class="modal-box">
   <div class="modal-head"><div class="modal-title">Записать расход</div><button class="modal-close" onclick="hideModal('addExp')">✕</button></div>
   <div class="field"><label>Автор</label><input id="eAuthor"></div>
-  <div class="field"><label>Проект</label><select id="eProj"></select></div>
+  <div class="field"><label>Проект</label><select id="eProj" onchange="onProjSelect(this)"></select></div>
   <div class="field"><label>Категория</label><select id="eCat"></select></div>
   <div class="field"><label>Сумма</label><input type="number" id="eSum" inputmode="decimal"></div>
-  <div class="field"><label>Описание</label><input id="eDesc"></div>
+  <div class="field"><label>Комментарий <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted-2)">— необязательно</span></label><input id="eDesc" placeholder="Например: фурнитура, доставка"></div>
   <div class="field"><label>Дата</label><input type="date" id="eDate"></div>
   <button class="btn btn-red" onclick="addExp()">Записать расход</button>
 </div></div>
@@ -535,10 +559,10 @@ input:focus,select:focus{outline:none;border-color:var(--brand)}
 <div class="modal" id="m-editExp"><div class="modal-box">
   <div class="modal-head"><div class="modal-title">Редактировать расход</div><button class="modal-close" onclick="hideModal('editExp')">✕</button></div>
   <input type="hidden" id="eeId">
-  <div class="field"><label>Проект</label><select id="eeProj"></select></div>
+  <div class="field"><label>Проект</label><select id="eeProj" onchange="onProjSelect(this)"></select></div>
   <div class="field"><label>Категория</label><select id="eeCat"></select></div>
   <div class="field"><label>Сумма</label><input type="number" id="eeSum" inputmode="decimal"></div>
-  <div class="field"><label>Описание</label><input id="eeDesc"></div>
+  <div class="field"><label>Комментарий <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted-2)">— необязательно</span></label><input id="eeDesc"></div>
   <div class="field"><label>Дата</label><input type="date" id="eeDate"></div>
   <button class="btn btn-primary" onclick="saveExp()">Сохранить</button>
 </div></div>
@@ -837,6 +861,88 @@ function catOptions(sel){return EXP_CATS.concat(sel==='ee'?['Со склада']
    проектов, поэтому при правке платежа завершённого проекта select не находил нужный
    пункт, обнулял значение — и сохранение МОЛЧА отвязывало деньги от проекта.
    Здесь текущий проект добавляется всегда, даже если он завершён, в архиве или удалён. */
+/* ───────── выбор проекта в расходах ─────────
+   Поле «Проект» существовало и раньше, но им не пользовались: 506 записей из 507
+   лежали в «Общих», а проект писали руками в «Описание» («Кухня кондр22»).
+   Причина простая — в списке были ТОЛЬКО активные проекты, а трата чаще всего
+   заносится, когда заказ уже сдан. Теперь список трёхуровневый:
+     Общие → В работе → Сдано недавно (60 дней) → поиск по всем остальным.
+   Полный список из 141 проекта не показывается никогда.                        */
+var RECENT_DAYS=60;
+function projRecentDone(){
+  var cut=new Date();cut.setDate(cut.getDate()-RECENT_DAYS);cut=iso(cut);
+  return D.projects.filter(function(p){
+    if(p._deleted||p.status==='active')return false;
+    var t=projTerm(p);
+    return t&&t.end&&t.end>=cut;
+  }).sort(function(a,b){return (projTerm(b).end||'').localeCompare(projTerm(a).end||'')});
+}
+function projStatusMark(p){
+  if(!p)return 'не найден';
+  if(p._deleted)return 'удалён';
+  if(p.status==='active')return 'в работе';
+  var t=projTerm(p);
+  return t&&t.end?'сдан '+fmtDate(t.end):({done:'завершён',archive:'в архиве'}[p.status]||'не в работе');
+}
+function opt(p,mark){return'<option value="'+esc(p.id)+'">'+esc(p.name)+(mark?' · '+mark:'')+'</option>'}
+/* Список для формы расхода: короткий, но текущий проект в нём есть всегда —
+   иначе правка чужой записи молча отвязала бы деньги от проекта. */
+function expProjOptions(curId){
+  var act=D.projects.filter(function(p){return p.status==='active'&&!p._deleted});
+  var rec=projRecentDone();
+  var shown={};act.concat(rec).forEach(function(p){shown[p.id]=1});
+  var h='<option value="Общие">Общие — не по проекту</option>';
+  if(act.length)h+='<optgroup label="В работе">'+act.map(function(p){return opt(p)}).join('')+'</optgroup>';
+  if(rec.length)h+='<optgroup label="Сдано за '+RECENT_DAYS+' дней">'+
+    rec.map(function(p){return opt(p,projStatusMark(p))}).join('')+'</optgroup>';
+  if(curId&&curId!=='Общие'&&!shown[curId]){
+    var p=D.projects.find(function(x){return x.id===curId});
+    h+='<optgroup label="Выбран">'+(p?opt(p,projStatusMark(p)):'<option value="'+esc(curId)+'">'+esc(curId)+' · не найден</option>')+'</optgroup>';
+  }
+  h+='<option value="__find__">🔍 Найти другой проект…</option>';
+  return h;
+}
+var fpTarget=null,fpPrev='';
+function onProjSelect(sel){
+  if(sel.value!=='__find__'){fpPrev=sel.value;return}
+  sel.value=fpPrev||'Общие';                 // «Найти» — не значение, а действие
+  fpTarget=sel;
+  $('fpQ').value='';renderFindProj();
+  showModal('findProj');
+  setTimeout(function(){$('fpQ').focus()},60);
+}
+function renderFindProj(){
+  var q=($('fpQ').value||'').toLowerCase().trim();
+  var list=D.projects.filter(function(p){return!p._deleted});
+  if(q)list=list.filter(function(p){
+    return[(p.name||''),(p.client||''),(p.address||''),(p.phone||'')].join(' ').toLowerCase().indexOf(q)>-1});
+  /* без запроса показываем свежие — чтобы окно не было пустым и не грузило 141 строку */
+  list.sort(function(a,b){
+    var ea=(projTerm(a)||{}).end||a.dateStart||'', eb=(projTerm(b)||{}).end||b.dateStart||'';
+    if(a.status!==b.status)return a.status==='active'?-1:1;
+    return eb.localeCompare(ea);
+  });
+  var total=list.length;
+  list=list.slice(0,40);
+  $('fpList').innerHTML=list.length?list.map(function(p){
+    return'<div class="fp-row" onclick="pickProj(\''+p.id+'\')">'+
+      '<div><div class="fp-name">'+esc(p.name||'—')+'</div>'+
+      '<div class="item-sub">'+sub(esc(p.client||''),projStatusMark(p),fmt(p.sum))+'</div></div></div>';
+  }).join('')+(total>40?'<div class="item-sub" style="padding:8px 4px">Показаны 40 из '+total+' — уточните запрос</div>':'')
+    :'<div class="empty"><i>🔍</i>Ничего не найдено</div>';
+}
+function pickProj(id){
+  if(!fpTarget)return hideModal('findProj');
+  var p=D.projects.find(function(x){return x.id===id});
+  if(p&&!Array.prototype.some.call(fpTarget.options,function(o){return o.value===id})){
+    var g=document.createElement('optgroup');g.label='Выбран';
+    g.innerHTML=opt(p,projStatusMark(p));
+    fpTarget.insertBefore(g,fpTarget.lastElementChild);
+  }
+  fpTarget.value=id;fpPrev=id;
+  hideModal('findProj');
+}
+
 function projOptionsFor(curId,withCommon){
   var act=D.projects.filter(function(p){return p.status==='active'&&!p._deleted});
   var html=withCommon?'<option value="Общие">Общие</option>':'';
@@ -854,9 +960,9 @@ function renderSelects(){
   /* пустое value вместо текста-заглушки: иначе в запись уходил бы
      несуществующий projectId «Нет проектов» */
   $('iProj').innerHTML=opts||'<option value="">Нет активных проектов</option>';
-  $('eProj').innerHTML='<option value="Общие">Общие</option>'+opts;
+  $('eProj').innerHTML=expProjOptions(curExp);          // короткий список + поиск, см. выше
   $('eiProj').innerHTML=opts||'<option value="">Нет активных проектов</option>';
-  $('eeProj').innerHTML='<option value="Общие">Общие</option>'+opts;
+  $('eeProj').innerHTML=expProjOptions($('eeProj').value);
   if(!$('eCat').innerHTML)$('eCat').innerHTML=catOptions('e');
   if(!$('eeCat').innerHTML)$('eeCat').innerHTML=catOptions('ee');
   if(curInc)$('iProj').value=curInc;
@@ -1077,6 +1183,19 @@ function renderHome(){
         plural(catS.length-8,'категория','категории','категорий')+'</span><span class="acc-arrow">▼</span></div>'+
         '<div class="acc-body"><div class="acc-inner">'+catS.slice(8).map(catRow).join('')+'</div></div>';
     }
+  }
+  /* Выплаты учредителям — отдельным приглушённым блоком под структурой расходов.
+     В сами расходы и в круг они не входят (это распределение прибыли), но видеть,
+     сколько забрали за период, надо в том же месте, где смотрят траты. */
+  var byOwner={};
+  expAll.forEach(function(e){if(isOwnerPay(e))byOwner[e.category]=(byOwner[e.category]||0)+e.amount});
+  var ownS=Object.entries(byOwner).sort(function(a,b){return b[1]-a[1]});
+  if(ownS.length){
+    catHtml+='<div class="own-block" title="'+OWNER_NOTE+'">'+
+      '<div class="own-head"><span>Забрали учредители</span><span>'+fmt(tOwner)+'</span></div>'+
+      ownS.map(function(c){
+        return'<div class="own-row"><span>'+esc(c[0])+'</span><span>'+fmt(c[1])+'</span></div>'}).join('')+
+      '<div class="own-note">В расходы и в круг выше не входит — это распределение прибыли.</div></div>';
   }
   $('chartDonut').innerHTML=chartDonut(catS,tExp)+catHtml;
 
