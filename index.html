@@ -872,9 +872,9 @@ function chartBars(series,W){
 }
 function chartProfit(series,W){
   if(series.length<2)return'<div class="empty"><i>📈</i>Нужно минимум два месяца</div>';
-  /* top увеличен: над точками теперь стоят подписи сумм, при прежних 18 px
-     подпись самого высокого месяца срезалась верхней границей svg */
-  var padL=6,h=182,top=32,ch=h-top-26;
+  /* top с запасом: над каждой точкой стоит подпись суммы на подложке,
+     при прежних 18 px подпись верхнего месяца срезалась границей svg */
+  var padL=6,h=190,top=38,ch=h-top-26;
   var step=stepFor(series.length,W);
   var w=Math.max(W,series.length*step+padL*2);
   var vals=series.map(function(d){return d.prof});
@@ -899,14 +899,17 @@ function chartProfit(series,W){
     s+='<circle cx="'+x(i)+'" cy="'+y(d.prof)+'" r="3.4" fill="#0a0b0d" stroke="'+(d.prof>=0?'#4ade80':'#f87171')+'" stroke-width="2.2"/>';
     var p=d.key.split('-');
     s+='<text x="'+x(i)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" fill="#5f646d" font-family="system-ui">'+MONTH_SHORT[parseInt(p[1],10)-1]+'</text>';
-    /* сумма у точки. Подпись уводим НАД точкой, а если точка у самого верха —
-       под неё, иначе цифра вылезет за график. Края прижимаем к полотну, чтобы
-       крайние подписи не срезались по бокам. */
-    var py=y(d.prof), above=py-top>16, ty=above?py-9:py+16;
-    var anchor=i===0?'start':i===series.length-1?'end':'middle';
-    var tx=i===0?Math.max(padL+1,x(i)-14):i===series.length-1?Math.min(w-padL-1,x(i)+14):x(i);
-    s+='<text x="'+tx+'" y="'+ty+'" text-anchor="'+anchor+'" font-size="10.5" font-weight="700" '+
-       'fill="'+(d.prof>=0?'#4ade80':'#f87171')+'" font-family="system-ui">'+fmtShort(d.prof)+'</text>';
+    /* Сумма ВСЕГДА над точкой и на тёмной подложке: без неё цифра ложится то на
+       заливку, то на линию, то на соседний столбик и теряется. Ширину плашки
+       считаем от числа символов — измерить текст в SVG до отрисовки нельзя. */
+    var label=fmtShort(d.prof), py=y(d.prof);
+    var bw=Math.round(label.length*6.4+12), bh=16;
+    var bx=Math.min(Math.max(x(i)-bw/2,padL), w-padL-bw);   // прижимаем к полотну
+    var by=py-6-bh;
+    s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="8" ry="8" '+
+       'fill="#0a0b0d" fill-opacity=".88" stroke="#2a2e36" stroke-width="1"/>';
+    s+='<text x="'+(bx+bw/2)+'" y="'+(by+bh-4.5)+'" text-anchor="middle" font-size="10.5" font-weight="700" '+
+       'fill="'+(d.prof>=0?'#4ade80':'#f87171')+'" font-family="system-ui">'+label+'</text>';
   });
   s+='</svg>';
   return s;
@@ -1189,14 +1192,21 @@ function projTerm(p){
   var pz=Math.round(pausedDaysOf(p,d.end||today()));
   return{start:d.start,end:d.end,exact:d.exact,days:Math.max(0,raw-pz),raw:raw,paused:pz};
 }
+/* Срок считаем по свежим сдачам, а не за всю историю: полгода назад работали
+   иначе, и старые заказы тянут среднее в сторону, которая уже не описывает цех. */
+var TERM_MONTHS=2;
 function renderTerms(){
-  var done=[],running=[];
+  var cut=new Date();cut.setMonth(cut.getMonth()-TERM_MONTHS);cut=iso(cut);
+  var done=[],running=[],older=0;
   D.projects.forEach(function(p){
     if(p._deleted)return;
     var t=projTerm(p);if(!t)return;
-    (t.end?done:running).push({p:p,t:t});
+    if(!t.end){running.push({p:p,t:t});return}
+    if(t.end<cut){older++;return}                 // сдано раньше окна — в статистику не берём
+    done.push({p:p,t:t});
   });
-  if(!done.length){$('termBlock').innerHTML='<div class="empty"><i>⏱</i>Пока нечего считать: нужен хотя бы один проект с предоплатой и финальной оплатой</div>';return}
+  if(!done.length){$('termBlock').innerHTML='<div class="empty"><i>⏱</i>За последние '+
+    TERM_MONTHS+' месяца сданных проектов нет'+(older?', раньше было '+older:'')+'</div>';return}
   var days=done.map(function(x){return x.t.days}).sort(function(a,b){return a-b});
   var mid=days.length%2?days[(days.length-1)/2]:Math.round((days[days.length/2-1]+days[days.length/2])/2);
   var avg=Math.round(days.reduce(function(s,x){return s+x},0)/days.length);
@@ -1221,14 +1231,10 @@ function renderTerms(){
      '<span><b style="background:var(--green)"></b>до 2 недель · '+w14+'</span>'+
      '<span><b style="background:var(--brand)"></b>2 недели — месяц · '+w30+'</span>'+
      '<span><b style="background:var(--red)"></b>дольше месяца · '+wRest+'</span></div>';
-  var exact=done.filter(function(x){return x.t.exact}).length;
   var withPause=done.filter(function(x){return x.t.paused>0}).length;
-  h+='<div class="item-sub" style="margin:8px 0 0">Посчитано по '+plural(done.length,'завершённому проекту','завершённым проектам','завершённым проектам')+': '+
-     'от даты договора до дня, когда получен остаток, минус паузы.'+
-     (withPause?' У '+withPause+' из них пауза вычтена.':'')+
-     '<br>'+(exact?'Точно по датам проекта: '+exact+'.':'')+
-     (done.length-exact?' <span style="color:var(--amber)">Оценка по датам платежей: '+(done.length-exact)+
-       '</span> — это записи, заведённые до появления даты завершения. Дальше каждый новый проект считается точно.':'')+
+  h+='<div class="item-sub" style="margin:8px 0 0">За последние '+TERM_MONTHS+' месяца сдано '+
+     plural(done.length,'проект','проекта','проектов')+'. Считаем от начала работы до дня, когда получен остаток, минус паузы.'+
+     (withPause?' У '+plural(withPause,'проекта','проектов','проектов')+' пауза вычтена.':'')+
      '</div>';
 
   var late=done.slice().sort(function(a,b){return b.t.days-a.t.days}).filter(function(x){return x.t.days>30}).slice(0,5);
@@ -1239,8 +1245,7 @@ function renderTerms(){
       h+='<div class="cat-row"><div class="cat-head"><span class="cat-name">'+esc(x.p.name||'—')+'</span>'+
          '<span class="cat-sum red">'+x.t.days+' дн</span></div>'+
          '<div class="item-sub">'+fmtDate(x.t.start)+' → '+fmtDate(x.t.end)+' · '+fmt(x.p.sum)+
-         (x.t.paused>0?' · пауза '+x.t.paused+' дн вычтена':'')+
-         (x.t.exact?'':' · <span style="color:var(--muted-2)">оценка по платежам</span>')+'</div></div>';
+         (x.t.paused>0?' · пауза '+x.t.paused+' дн вычтена':'')+'</div></div>';
     });
     h+='</div></div>';
   }
