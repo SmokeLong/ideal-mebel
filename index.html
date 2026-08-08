@@ -71,13 +71,26 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
    чтобы произвольный период задавался без лишнего нажатия. min-width:0 —
    обязательно, иначе флекс-ребёнок не может стать уже своего содержимого
    и строка уезжает за край экрана. */
-.perbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
-.perbar .seg{margin-bottom:0;flex:0 0 auto}
+/* 🔴 На телефоне второе поле даты уезжало за экран. Две причины, обе учтены:
+   1) флекс не ужимал нативный date-инпут: iOS держит его «естественную» ширину
+      под «дд.мм.гггг» и не даёт стать уже. Лечится гридом с minmax(0,1fr) —
+      колонка обязана влезть, а не подстроиться под содержимое;
+   2) при шрифте меньше 16 px Safari на айфоне ЗУМИТ страницу на тапе по полю,
+      и она уползает вбок. Поэтому у полей дат ровно 16 px.
+   На узких экранах даты уходят на свою строку целиком — там места хватает всем. */
+.perbar{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;margin-bottom:14px}
+.perbar .seg{margin-bottom:0}
 .perbar .seg button{flex:0 0 auto;padding:11px 13px;font-size:14px}
-.perbar .dates{display:flex;gap:5px;align-items:center;flex:1 1 150px;min-width:0}
-.perbar .dates input{flex:1 1 0;min-width:0;padding:10px 3px;font-size:13px;text-align:center}
+.perbar .dates{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  gap:6px;align-items:center;min-width:0}
+.perbar .dates input{width:100%;min-width:0;padding:10px 4px;font-size:16px;text-align:center;
+  -webkit-appearance:none;appearance:none}
 .perbar .dates input.on{border-color:var(--brand);color:var(--text)}
-.perbar .dash{color:var(--muted-2);font-size:14px;flex:0 0 auto}
+.perbar .dash{color:var(--muted-2);font-size:14px}
+@media (max-width:439px){
+  .perbar{grid-template-columns:minmax(0,1fr)}
+  .perbar .seg{justify-self:start}
+}
 
 /* шапка «Итого по фильтру» на страницах доходов и расходов.
    Раньше это был флекс без gap и без min-width: правая колонка со счётчиком
