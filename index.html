@@ -537,7 +537,6 @@ input:focus,select:focus{outline:none;border-color:var(--brand)}
 
 <div class="modal" id="m-addExp"><div class="modal-box">
   <div class="modal-head"><div class="modal-title">Записать расход</div><button class="modal-close" onclick="hideModal('addExp')">✕</button></div>
-  <div class="field"><label>Автор</label><input id="eAuthor"></div>
   <div class="field"><label>Проект</label><select id="eProj" onchange="onProjSelect(this)"></select></div>
   <div class="field"><label>Категория</label><select id="eCat"></select></div>
   <div class="field"><label>Сумма</label><input type="number" id="eSum" inputmode="decimal"></div>
@@ -1744,7 +1743,7 @@ async function addExp(){
   var sum=parseFloat($('eSum').value)||0;
   if(!sum)return toast('❌ Введите сумму');
   D.expenses.push({id:'E'+Date.now(),projectId:$('eProj').value,category:$('eCat').value,amount:sum,
-    desc:$('eDesc').value,author:$('eAuthor').value,date:$('eDate').value||today(),ts:now()});
+    desc:$('eDesc').value,date:$('eDate').value||today(),ts:now()});
   if(await saveData()){$('eSum').value='';$('eDesc').value='';hideModal('addExp');render();toast('✅ Расход записан')}
 }
 function editExp(id){
